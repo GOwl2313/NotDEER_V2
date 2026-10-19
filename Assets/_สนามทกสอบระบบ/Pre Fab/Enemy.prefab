@@ -222,8 +222,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d481315e14714647b17bae1e1a49bcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyController
-  player: {fileID: 7114426969352601263, guid: 4615f4cd0019d74469f6548efd0684a9, type: 3}
-  flashlightDetector: {fileID: 0}
+  player: {fileID: 0}
+  flashlightDetector: {fileID: -1118715085667374070}
   moveSpeed: 11
   stopDistance: 0.5
   resumeDistance: 3
@@ -238,11 +238,7 @@ MonoBehaviour:
   stunnedColor: {r: 1, g: 0, b: 0, a: 1}
   disappearingColor: {r: 0, g: 0, b: 1, a: 1}
   useRigidbodyWhenAvailable: 1
-  preventPhysicsSpin: 1
-  freezeTilt: 1
-  useInterpolation: 1
-  useContinuousCollision: 1
-  useZeroFrictionContacts: 1
+  preventContactSpin: 1
 --- !u!54 &-7452884543522396871
 Rigidbody:
   m_ObjectHideFlags: 0

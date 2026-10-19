@@ -548,6 +548,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3647472280117851262, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
+      propertyPath: m_TagString
+      value: Flashlight
+      objectReference: {fileID: 0}
     - target: {fileID: 8585999018596361489, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
       propertyPath: m_Name
       value: LampReEnegy (6)
@@ -5097,6 +5101,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: -1.866
       objectReference: {fileID: 0}
+    - target: {fileID: 3647472280117851262, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
+      propertyPath: m_TagString
+      value: Flashlight
+      objectReference: {fileID: 0}
     - target: {fileID: 8585999018596361489, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
       propertyPath: m_Name
       value: LampReEnegy (3)
@@ -7559,67 +7567,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1736926215829397850, guid: a5d2449f83e0bfb4a9007bda1693d425, type: 3}
   m_PrefabInstance: {fileID: 98122343}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &335423339
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 140.71523
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 28.656763
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 22.675844
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 919132149155446097, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
-      propertyPath: m_Name
-      value: Wendigo
-      objectReference: {fileID: 0}
-    - target: {fileID: 7545533789045323475, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
-      propertyPath: 'm_Materials.Array.data[0]'
-      value: 
-      objectReference: {fileID: 2100000, guid: 6f5102119b466684085409526921a803, type: 2}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
 --- !u!4 &335805257 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 112980270847420869, guid: 58b10ab7d4f44194a95d16dece4f4271, type: 3}
@@ -11803,7 +11750,7 @@ Light:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 579224138}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 13
   m_Type: 0
   m_Color: {r: 1, g: 0.92543435, b: 0.75, a: 1}
@@ -13018,6 +12965,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3647472280117851262, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
+      propertyPath: m_TagString
+      value: Flashlight
+      objectReference: {fileID: 0}
     - target: {fileID: 8585999018596361489, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
       propertyPath: m_Name
       value: LampReEnegy (1)
@@ -14012,10 +13963,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1078922917}
     m_Modifications:
-    - target: {fileID: -7452884543522396871, guid: b33ad05c1919e7e4890dbcd9e04a64e2, type: 3}
-      propertyPath: m_UseGravity
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 1769731122723071451, guid: b33ad05c1919e7e4890dbcd9e04a64e2, type: 3}
       propertyPath: m_LocalPosition.x
       value: 5.5850983
@@ -14063,10 +14010,6 @@ PrefabInstance:
     - target: {fileID: 6991521355028372668, guid: b33ad05c1919e7e4890dbcd9e04a64e2, type: 3}
       propertyPath: m_Name
       value: Enemy
-      objectReference: {fileID: 0}
-    - target: {fileID: 6991521355028372668, guid: b33ad05c1919e7e4890dbcd9e04a64e2, type: 3}
-      propertyPath: m_IsActive
-      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -18037,6 +17980,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3647472280117851262, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
+      propertyPath: m_TagString
+      value: Flashlight
+      objectReference: {fileID: 0}
     - target: {fileID: 8585999018596361489, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
       propertyPath: m_Name
       value: LampReEnegy (7)
@@ -19494,6 +19441,10 @@ PrefabInstance:
     - target: {fileID: 1281150986155205068, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3647472280117851262, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
+      propertyPath: m_TagString
+      value: Flashlight
       objectReference: {fileID: 0}
     - target: {fileID: 8585999018596361489, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
       propertyPath: m_Name
@@ -25689,6 +25640,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3647472280117851262, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
+      propertyPath: m_TagString
+      value: Flashlight
+      objectReference: {fileID: 0}
     - target: {fileID: 8585999018596361489, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
       propertyPath: m_Name
       value: LampReEnegy (2)
@@ -26241,6 +26196,10 @@ PrefabInstance:
     - target: {fileID: 1281150986155205068, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 7.285
+      objectReference: {fileID: 0}
+    - target: {fileID: 3647472280117851262, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
+      propertyPath: m_TagString
+      value: Flashlight
       objectReference: {fileID: 0}
     - target: {fileID: 8585999018596361489, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
       propertyPath: m_Name
@@ -28333,7 +28292,7 @@ GameObject:
   - component: {fileID: 1470933003}
   m_Layer: 0
   m_Name: Spot Light
-  m_TagString: Untagged
+  m_TagString: Flashlight
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -28613,6 +28572,97 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 3685fb5bb05f46d49a17265c010515b5, type: 3}
+--- !u!1001 &1479166665
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 137.88696
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 28.605782
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 26.255857
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: -8679921383154817045, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 919132149155446097, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+      propertyPath: m_Name
+      value: Wendigo
+      objectReference: {fileID: 0}
+    - target: {fileID: 7545533789045323475, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: 6f5102119b466684085409526921a803, type: 2}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1479166667}
+  m_SourcePrefab: {fileID: 100100000, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+--- !u!1 &1479166666 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 594e29dfc2e248141a98b339efe5dde9, type: 3}
+  m_PrefabInstance: {fileID: 1479166665}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &1479166667
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1479166666}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 9100000, guid: a9b9bdbaa8a1d6248a2757e56d3f5b2f, type: 2}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!4 &1480891237 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3003476188103367082, guid: a8b64a54ea8932e4db85b9bfff78e934, type: 3}
@@ -30453,6 +30503,10 @@ PrefabInstance:
     - target: {fileID: 1281150986155205068, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3647472280117851262, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
+      propertyPath: m_TagString
+      value: Flashlight
       objectReference: {fileID: 0}
     - target: {fileID: 8585999018596361489, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
       propertyPath: m_Name
@@ -42694,4 +42748,4 @@ SceneRoots:
   - {fileID: 1791356637}
   - {fileID: 1181566784}
   - {fileID: 753855465}
-  - {fileID: 335423339}
+  - {fileID: 1479166665}
