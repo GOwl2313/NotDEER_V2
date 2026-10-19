@@ -67,5 +67,5 @@
         "*.sln": "*.csproj",
         "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "NotDEER_V2.slnx"
+    "dotnet.defaultSolution": "NotDEER.slnx"
 }
