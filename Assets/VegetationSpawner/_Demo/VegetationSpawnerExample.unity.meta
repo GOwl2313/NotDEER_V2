@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 62ef239c36fb1a544ad952df4d66546d
+DefaultImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 177192
+  packageName: Vegetation Spawner
+  packageVersion: 1.1.0
+  assetPath: Assets/VegetationSpawner/_Demo/VegetationSpawnerExample.unity
+  uploadId: 712351
