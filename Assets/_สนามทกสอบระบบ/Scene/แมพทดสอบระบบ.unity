@@ -820,6 +820,7 @@ GameObject:
   m_Component:
   - component: {fileID: 437642781}
   - component: {fileID: 437642782}
+  - component: {fileID: 437642783}
   m_Layer: 0
   m_Name: Waypoint
   m_TagString: Untagged
@@ -876,6 +877,22 @@ MonoBehaviour:
   onBecameHidden:
     m_PersistentCalls:
       m_Calls: []
+  debugLogs: 0
+--- !u!114 &437642783
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 437642780}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61f210e33236de94d88eacb4e04416e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WaypointEventGate
+  trigger: 0
+  gameEventName: AllTotemsCollected
+  direction: 0
   debugLogs: 0
 --- !u!1 &449206124
 GameObject:
