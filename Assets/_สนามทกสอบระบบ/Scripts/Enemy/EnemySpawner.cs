@@ -37,6 +37,21 @@ using UnityEngine;
 ///     resumes — the enemy re-engages right when the delay expires.
 ///     Several zones can overlap safely (reference-counted pause).
 ///
+/// v1.4 – STUCK / OUT-OF-RANGE AUTO RESPAWN (for the EnemyStuckDetector
+///   plug-in script, which lives on the enemy prefab):
+///   • QueueStuckRespawn(delay): the watchdog calls this when it recycles an
+///     enemy that got wedged on geometry or lurked outside the spawn ring
+///     for too long. It queues one replacement that fires after the given
+///     delay (default 5 s, configured on the detector). The queue behaves
+///     exactly like the flashlight-kill respawn queue: it runs even when
+///     Auto Spawn is off, freezes while a Safe Zone holds the player or the
+///     Spawn Delay counts, respects Max Alive Enemies, and cancels on
+///     Despawn All. NO other v1.3 behaviour changed.
+///   • MaxSpawnDistance property: read-only access to the outer ring radius,
+///     so the detector's "out of range" check always matches this spawner.
+///   • StuckRespawnCountdown property: seconds until the queued replacement
+///     spawns (-1 when idle), handy for a HUD like the flashlight one.
+///
 /// Every tuning value is exposed in the Inspector. Use the component's
 /// context menu (gear icon) to "Spawn Enemy Now" while testing.
 /// </summary>
@@ -168,6 +183,12 @@ public class EnemySpawner : MonoBehaviour
     private bool startDelayPending;    // fire the "Spawn On Start" spawn when the delay ends
     private bool resumeDelayPending;   // re-engage right when a post-zone delay ends
 
+    // v1.4: stuck/out-of-range respawn queue (queued by EnemyStuckDetector).
+    // One countdown for the head of the queue; further entries wait with
+    // their own delays (the same shape as the flashlight respawn queue).
+    private readonly Queue<float> stuckRespawnDelays = new Queue<float>();
+    private float stuckRespawnCountdown = -1f;   // < 0 = idle
+
     /// <summary>Number of enemies currently alive (destroyed ones are pruned automatically).</summary>
     public int AliveCount
     {
@@ -202,6 +223,25 @@ public class EnemySpawner : MonoBehaviour
     public float SpawnDelayCountdown
     {
         get { return spawnDelayCountdown > 0f ? spawnDelayCountdown : -1f; }
+    }
+
+    /// <summary>
+    /// v1.4: Seconds left until the stuck/out-of-range replacement spawns
+    /// (-1 when no stuck respawn is pending). Read-only, handy for a HUD.
+    /// </summary>
+    public float StuckRespawnCountdown
+    {
+        get { return stuckRespawnCountdown >= 0f ? Mathf.Max(0f, stuckRespawnCountdown) : -1f; }
+    }
+
+    /// <summary>
+    /// v1.4: The outer spawn ring radius (Max Spawn Distance). Read-only.
+    /// EnemyStuckDetector reads this so its "out of range" check always
+    /// matches the ring this spawner places enemies on.
+    /// </summary>
+    public float MaxSpawnDistance
+    {
+        get { return maxSpawnDistance; }
     }
 
     // ------------------------------------------------------------------ //
@@ -295,6 +335,32 @@ public class EnemySpawner : MonoBehaviour
                 {
                     RollRespawnCooldown(); // next queued kill gets a fresh random roll
                 }
+            }
+            else
+            {
+                spawnTimer = 0f; // the auto-spawn interval restarts after the respawn
+            }
+
+            return;
+        }
+
+        // v1.4: STUCK/OUT-OF-RANGE respawn countdown (queued by
+        // EnemyStuckDetector when an enemy got wedged somewhere or lurked
+        // out of the spawn ring for too long). Same rules as the flashlight
+        // queue above: it runs even when Auto Spawn is off, and it freezes
+        // while a Safe Zone holds the player or the Spawn Delay counts.
+        if (stuckRespawnCountdown >= 0f)
+        {
+            stuckRespawnCountdown -= Time.deltaTime;
+
+            if (stuckRespawnCountdown <= 0f)
+            {
+                TrySpawnEnemy();
+
+                // The next queued replacement (if any) starts counting now.
+                stuckRespawnCountdown = stuckRespawnDelays.Count > 0
+                    ? stuckRespawnDelays.Dequeue()
+                    : -1f;
             }
             else
             {
@@ -400,12 +466,40 @@ public class EnemySpawner : MonoBehaviour
         pendingFlashlightRespawns = 0;
         flashlightRespawnCountdown = 0f;
 
+        // v1.4: the stuck/out-of-range respawn queue cancels too.
+        stuckRespawnDelays.Clear();
+        stuckRespawnCountdown = -1f;
+
         // v1.3: delay bookkeeping resets too (a clean field means no pending
         // start/resume spawn). External SafeZone pauses are NOT touched —
         // those belong to the zones and resolve themselves.
         spawnDelayCountdown = 0f;
         startDelayPending = false;
         resumeDelayPending = false;
+    }
+
+    /// <summary>
+    /// v1.4 – STUCK/OUT-OF-RANGE RESPAWN (called by EnemyStuckDetector on an
+    /// enemy that got wedged somewhere or lurked out of the spawn ring for
+    /// too long): queues one replacement spawn that fires after the given
+    /// delay in seconds. Completely independent of Auto Spawn (like the
+    /// flashlight respawns, the comeback is guaranteed) while still
+    /// respecting the Safe Zone pause, the Spawn Delay, Max Alive Enemies
+    /// and every placement rule (out of sight, on tagged ground).
+    /// Repeated calls queue further replacements, each with its own delay.
+    /// </summary>
+    public void QueueStuckRespawn(float delay)
+    {
+        delay = Mathf.Max(0f, delay);
+
+        if (stuckRespawnCountdown < 0f)
+        {
+            stuckRespawnCountdown = delay;          // first entry starts counting
+        }
+        else
+        {
+            stuckRespawnDelays.Enqueue(delay);      // further entries wait their turn
+        }
     }
 
     // ------------------------------------------------------------------ //
