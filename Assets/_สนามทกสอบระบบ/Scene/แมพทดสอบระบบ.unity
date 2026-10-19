@@ -778,7 +778,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc33e77bb0989484ea6f903f78108a25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JumpscareGameOverManager
-  jumpscareVideo: {fileID: 32900000, guid: 21d94c54709241044b2ebcde97c7aa3f, type: 3}
+  jumpscareVideo: {fileID: 32900000, guid: e62b8667a297bdf4f87c175f72207e8d, type: 3}
   videoVolume: 1
   keepVideoAspectRatio: 1
   waitForFirstFrame: 1
@@ -800,6 +800,167 @@ MonoBehaviour:
   placePlayerAtStart: 1
   playerOverride: {fileID: 0}
   canvasSortingOrder: 32766
+--- !u!4 &348251244 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2592070730176192513, guid: 26d1fba51194af44e9467a252b93dc0d, type: 3}
+  m_PrefabInstance: {fileID: 1282213924}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &424943647 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2592070730176192513, guid: 9a8df8e5fb43a8f4580af98d6bb0f108, type: 3}
+  m_PrefabInstance: {fileID: 825819038}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &437642780
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 437642781}
+  - component: {fileID: 437642782}
+  - component: {fileID: 437642783}
+  m_Layer: 0
+  m_Name: Waypoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &437642781
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 437642780}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 3.26, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1290611962}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &437642782
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 437642780}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7af2fd1cf01f3b9418ecf2ac0496e6c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldWaypoint
+  iconSprite: {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
+  iconScale: 1
+  iconTint: {r: 0.23113209, g: 0.96421254, b: 1, a: 1}
+  showLabel: 1
+  labelText: Place totems here
+  labelFontSize: 26
+  labelColor: {r: 1, g: 1, b: 1, a: 1}
+  showDistance: 1
+  distanceSuffix: m
+  distanceFontSize: 22
+  distanceColor: {r: 1, g: 1, b: 1, a: 1}
+  distanceReference: 0
+  clampToScreenEdge: 0
+  screenEdgeMargin: 0.08
+  maxViewDistance: 0
+  screenOffset: {x: 0, y: 0}
+  onBecameVisible:
+    m_PersistentCalls:
+      m_Calls: []
+  onBecameHidden:
+    m_PersistentCalls:
+      m_Calls: []
+  debugLogs: 0
+--- !u!114 &437642783
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 437642780}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 61f210e33236de94d88eacb4e04416e8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WaypointEventGate
+  trigger: 0
+  gameEventName: AllTotemsCollected
+  direction: 0
+  debugLogs: 0
+--- !u!1 &449206124
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 449206125}
+  - component: {fileID: 449206126}
+  m_Layer: 0
+  m_Name: Waypoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &449206125
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 449206124}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 17.3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1389517149}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &449206126
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 449206124}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7af2fd1cf01f3b9418ecf2ac0496e6c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldWaypoint
+  iconSprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  iconScale: 0.5
+  iconTint: {r: 1, g: 1, b: 1, a: 1}
+  showLabel: 1
+  labelText: Totem
+  labelFontSize: 26
+  labelColor: {r: 1, g: 1, b: 1, a: 1}
+  showDistance: 1
+  distanceSuffix: m
+  distanceFontSize: 22
+  distanceColor: {r: 1, g: 1, b: 1, a: 1}
+  distanceReference: 0
+  clampToScreenEdge: 0
+  screenEdgeMargin: 0.08
+  maxViewDistance: 0
+  screenOffset: {x: 0, y: 0}
+  onBecameVisible:
+    m_PersistentCalls:
+      m_Calls: []
+  onBecameHidden:
+    m_PersistentCalls:
+      m_Calls: []
+  debugLogs: 0
 --- !u!1 &454051158
 GameObject:
   m_ObjectHideFlags: 0
@@ -1016,6 +1177,11 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!4 &503250305 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2592070730176192513, guid: 736c9d272d35c9e46acfa862a3084985, type: 3}
+  m_PrefabInstance: {fileID: 504456344}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &504456344
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1090,7 +1256,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 2592070730176192513, guid: 736c9d272d35c9e46acfa862a3084985, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1879090277}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 736c9d272d35c9e46acfa862a3084985, type: 3}
 --- !u!43 &526035760
@@ -1556,7 +1725,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 2592070730176192513, guid: 9a8df8e5fb43a8f4580af98d6bb0f108, type: 3}
+      insertIndex: 0
+      addedObject: {fileID: 1463177657}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9a8df8e5fb43a8f4580af98d6bb0f108, type: 3}
 --- !u!1 &879782031
@@ -2112,7 +2284,10 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 2592070730176192513, guid: 26d1fba51194af44e9467a252b93dc0d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2121691531}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 26d1fba51194af44e9467a252b93dc0d, type: 3}
 --- !u!1 &1290611959
@@ -2219,6 +2394,7 @@ Transform:
   m_Children:
   - {fileID: 1771101563}
   - {fileID: 1871701748}
+  - {fileID: 437642781}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1290611963
@@ -2623,9 +2799,17 @@ PrefabInstance:
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
-    m_AddedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 2592070730176192513, guid: 98dcdf5f743537d458af968185b695bf, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 449206125}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 98dcdf5f743537d458af968185b695bf, type: 3}
+--- !u!4 &1389517149 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 2592070730176192513, guid: 98dcdf5f743537d458af968185b695bf, type: 3}
+  m_PrefabInstance: {fileID: 1389517148}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1447947257
 GameObject:
   m_ObjectHideFlags: 0
@@ -2763,6 +2947,73 @@ RectTransform:
   m_AnchoredPosition: {x: -781, y: 404}
   m_SizeDelta: {x: 489, y: 73.2}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!1 &1463177656
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1463177657}
+  - component: {fileID: 1463177658}
+  m_Layer: 0
+  m_Name: Waypoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1463177657
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1463177656}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 17.3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 424943647}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1463177658
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1463177656}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7af2fd1cf01f3b9418ecf2ac0496e6c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldWaypoint
+  iconSprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  iconScale: 0.5
+  iconTint: {r: 1, g: 1, b: 1, a: 1}
+  showLabel: 1
+  labelText: Totem
+  labelFontSize: 26
+  labelColor: {r: 1, g: 1, b: 1, a: 1}
+  showDistance: 1
+  distanceSuffix: m
+  distanceFontSize: 22
+  distanceColor: {r: 1, g: 1, b: 1, a: 1}
+  distanceReference: 0
+  clampToScreenEdge: 0
+  screenEdgeMargin: 0.08
+  maxViewDistance: 0
+  screenOffset: {x: 0, y: 0}
+  onBecameVisible:
+    m_PersistentCalls:
+      m_Calls: []
+  onBecameHidden:
+    m_PersistentCalls:
+      m_Calls: []
+  debugLogs: 0
 --- !u!1 &1642816391
 GameObject:
   m_ObjectHideFlags: 0
@@ -3602,6 +3853,73 @@ MonoBehaviour:
   target: {fileID: 1290611962}
   rescanInterval: 1
   debugLogs: 0
+--- !u!1 &1879090276
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1879090277}
+  - component: {fileID: 1879090278}
+  m_Layer: 0
+  m_Name: Waypoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1879090277
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1879090276}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 17.3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 503250305}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1879090278
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1879090276}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7af2fd1cf01f3b9418ecf2ac0496e6c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldWaypoint
+  iconSprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  iconScale: 0.5
+  iconTint: {r: 1, g: 1, b: 1, a: 1}
+  showLabel: 1
+  labelText: Totem
+  labelFontSize: 26
+  labelColor: {r: 1, g: 1, b: 1, a: 1}
+  showDistance: 1
+  distanceSuffix: m
+  distanceFontSize: 22
+  distanceColor: {r: 1, g: 1, b: 1, a: 1}
+  distanceReference: 0
+  clampToScreenEdge: 0
+  screenEdgeMargin: 0.08
+  maxViewDistance: 0
+  screenOffset: {x: 0, y: 0}
+  onBecameVisible:
+    m_PersistentCalls:
+      m_Calls: []
+  onBecameHidden:
+    m_PersistentCalls:
+      m_Calls: []
+  debugLogs: 0
 --- !u!1 &1896991078
 GameObject:
   m_ObjectHideFlags: 0
@@ -4117,6 +4435,73 @@ MonoBehaviour:
   fontSize: 28
   textColor: {r: 1, g: 1, b: 1, a: 1}
   canvasSortingOrder: 201
+  debugLogs: 0
+--- !u!1 &2121691530
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2121691531}
+  - component: {fileID: 2121691532}
+  m_Layer: 0
+  m_Name: Waypoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2121691531
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2121691530}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 17.3, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 348251244}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2121691532
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2121691530}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7af2fd1cf01f3b9418ecf2ac0496e6c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::WorldWaypoint
+  iconSprite: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  iconScale: 0.5
+  iconTint: {r: 1, g: 1, b: 1, a: 1}
+  showLabel: 1
+  labelText: Totem
+  labelFontSize: 26
+  labelColor: {r: 1, g: 1, b: 1, a: 1}
+  showDistance: 1
+  distanceSuffix: m
+  distanceFontSize: 22
+  distanceColor: {r: 1, g: 1, b: 1, a: 1}
+  distanceReference: 0
+  clampToScreenEdge: 0
+  screenEdgeMargin: 0.08
+  maxViewDistance: 0
+  screenOffset: {x: 0, y: 0}
+  onBecameVisible:
+    m_PersistentCalls:
+      m_Calls: []
+  onBecameHidden:
+    m_PersistentCalls:
+      m_Calls: []
   debugLogs: 0
 --- !u!4 &384110478562263295
 Transform:
