@@ -1269,7 +1269,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bc33e77bb0989484ea6f903f78108a25, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::JumpscareGameOverManager
-  jumpscareVideo: {fileID: 32900000, guid: aed6d50e64dff74439a7c66a6eeea67e, type: 3}
+  jumpscareVideo: {fileID: 32900000, guid: a5837521588447841adad9065736aee8, type: 3}
   videoVolume: 1
   keepVideoAspectRatio: 1
   waitForFirstFrame: 1
