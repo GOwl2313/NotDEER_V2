@@ -505,66 +505,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1281150986155205068, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
   m_PrefabInstance: {fileID: 15893173}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &16939510
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 16939511}
-  - component: {fileID: 16939512}
-  m_Layer: 0
-  m_Name: CassetteTape
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &16939511
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 16939510}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1939365725}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &16939512
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 16939510}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0cd7405ce0a0bc646be96b14a551cb8d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::CassetteTapePlayer
-  tapeClip: {fileID: 8300000, guid: 58bcff57a5ce718448c98ad5eaaf6165, type: 3}
-  volume: 1
-  triggerMode: 0
-  playerTag: Player
-  replayOnReenter: 1
-  triggerZoneCenter: {x: 0, y: 1, z: 0}
-  triggerZoneSize: {x: 2, y: 2, z: 2}
-  allowSkip: 1
-  skipKey: 113
-  promptColor: {r: 1, g: 1, b: 1, a: 1}
-  promptFontSize: 40
-  promptOffsetY: 160
-  canvasSortingOrder: 250
-  customPromptText: 
-  respectPause: 1
-  debugLogs: 0
 --- !u!1001 &19453792
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -27914,6 +27854,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: ce73adbbae02ad84994f5abaafaa91a4, type: 3}
+--- !u!1 &1467950360 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5357771181355029468, guid: 693f066618febe94da2ccfa6d9b7f3ab, type: 3}
+  m_PrefabInstance: {fileID: 1939365724}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &1471825942 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3003476188103367082, guid: a8b64a54ea8932e4db85b9bfff78e934, type: 3}
@@ -37408,7 +37353,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5357771181355029468, guid: 693f066618febe94da2ccfa6d9b7f3ab, type: 3}
       propertyPath: m_Name
-      value: "\u0E08\u0E38\u0E14\u0E2D\u0E35\u0E40\u0E27\u0E49\u0E19\u0E17\u0E4C"
+      value: Cassette Tape spot
       objectReference: {fileID: 0}
     - target: {fileID: 8040835256165536781, guid: 693f066618febe94da2ccfa6d9b7f3ab, type: 3}
       propertyPath: opacity
@@ -37419,17 +37364,46 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 718434383523424570, guid: 693f066618febe94da2ccfa6d9b7f3ab, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 16939511}
-    - targetCorrespondingSourceObject: {fileID: 718434383523424570, guid: 693f066618febe94da2ccfa6d9b7f3ab, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 311570922}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5357771181355029468, guid: 693f066618febe94da2ccfa6d9b7f3ab, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1939365728}
   m_SourcePrefab: {fileID: 100100000, guid: 693f066618febe94da2ccfa6d9b7f3ab, type: 3}
 --- !u!4 &1939365725 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 718434383523424570, guid: 693f066618febe94da2ccfa6d9b7f3ab, type: 3}
   m_PrefabInstance: {fileID: 1939365724}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1939365728
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1467950360}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0cd7405ce0a0bc646be96b14a551cb8d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::CassetteTapePlayer
+  tapeClip: {fileID: 8300000, guid: 58bcff57a5ce718448c98ad5eaaf6165, type: 3}
+  volume: 1
+  loudnessBoost: 2
+  triggerMode: 0
+  playerTag: Player
+  replayOnReenter: 1
+  triggerZoneCenter: {x: 0, y: 1, z: 0}
+  triggerZoneSize: {x: 2, y: 2, z: 2}
+  allowSkip: 1
+  skipKey: 113
+  promptColor: {r: 1, g: 1, b: 1, a: 1}
+  promptFontSize: 40
+  promptOffsetY: 160
+  canvasSortingOrder: 250
+  customPromptText: 
+  respectPause: 1
+  debugLogs: 0
 --- !u!4 &1940384337 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 1736926215829397850, guid: a5d2449f83e0bfb4a9007bda1693d425, type: 3}

@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 #endif
 
 /// <summary>
-/// CASSETTE TAPE PLAYER (v1.0) — story tapes for event spots.
+/// CASSETTE TAPE PLAYER (v1.1) — story tapes for event spots.
 ///
 /// WHAT IT DOES
 ///   Put this component on an event spot (an empty object, a tape recorder
@@ -20,6 +20,20 @@ using UnityEngine.InputSystem;
 ///   the other prompts in the project (bold white text, black outline,
 ///   canvas sorting 250, far below the pause menu). Pressing the skip key,
 ///   or the tape reaching its end, stops the sound and removes the prompt.
+///
+/// LOUDNESS BOOST (new in v1.1)
+///   "Volume" (0–1) mixes the tape as usual. "Loudness Boost" goes FURTHER:
+///   it amplifies the recording itself, so the tape can play LOUDER than the
+///   original file — a quiet recording no longer needs re-editing:
+///     1 = the file's own level (default — behaves exactly like v1.0)
+///     2 = twice as loud, 3 = three times, 4 = four times (maximum)
+///   The loudest moment of the tape is automatically capped at the clean
+///   maximum, so boosting never crackles or distorts. The boost follows the
+///   slider LIVE during playback (without losing the playing position), and
+///   replays reuse the amplified copy. It needs the clip's Load Type set to
+///   "Decompress On Load" (Unity's default for imported audio) — a clip
+///   that cannot be amplified simply plays at normal volume and says so
+///   once in the Console. The original asset file is never modified.
 ///
 /// ZERO SETUP
 ///   • Drag ANY audio file Unity imports (.mp3, .ogg, .wav) into the
@@ -72,6 +86,11 @@ public class CassetteTapePlayer : MonoBehaviour
 
     [Tooltip("How loud the tape plays (1 = full volume).")]
     [SerializeField, Range(0f, 1f)] private float volume = 1f;
+
+    [Tooltip("Loudness BOOST above the file's own level: 1 = original, 2 = twice as loud, 4 = four times as loud (maximum). " +
+             "The loudest moment is capped at the clean maximum so it never crackles. Follows the slider live during playback. " +
+             "Needs the clip's Load Type = Decompress On Load (Unity's default for imported audio).")]
+    [SerializeField, Range(1f, 4f)] private float loudnessBoost = 1f;
 
     [Tooltip("OnPlayerEnter = the tape starts the moment the player walks into this object's trigger collider. " +
              "ManualOnly = this script never starts the tape itself — call PlayTape() from any UnityEvent " +
@@ -147,6 +166,14 @@ public class CassetteTapePlayer : MonoBehaviour
     private bool warnedNoPlayer;
     private bool warnedNoClip;
     private bool pausedByPauseMenu;
+
+    // loudness boost — the amplified runtime copy (null while playing the
+    // original). Built once per gain value, reused for every replay, freed
+    // on destroy / boost change. The original asset is never touched.
+    private AudioClip playbackClip;
+    private float builtBoostGain = 1f;     // the gain playbackClip was built with
+    private AudioClip boostSourceClip;     // the original clip the copy / warning belongs to
+    private bool warnedBoostUnavailable;   // one actionable warning per clip — never spam
 
     private Canvas promptCanvas;           // built lazily on first play
     private Text promptLabel;
@@ -225,6 +252,7 @@ public class CassetteTapePlayer : MonoBehaviour
 
         // ---- live tuning while playing (guarded — writes only on change) ---- //
         if (tapeSource.volume != volume) tapeSource.volume = volume;
+        SyncLiveLoudness();
         SyncPromptVisuals();
     }
 
@@ -240,6 +268,7 @@ public class CassetteTapePlayer : MonoBehaviour
     {
         if (IsPlaying) StopTape();
         if (activeTape == this) activeTape = null;
+        ReleaseAmplifiedClip();          // the boosted copy is ours — it never outlives this component
 
         // the prompt canvas was built as a ROOT object — it must never
         // outlive this component (same rule as ProximityPromptUI).
@@ -289,7 +318,7 @@ public class CassetteTapePlayer : MonoBehaviour
 
         EnsureTapeSource();
 
-        tapeSource.clip = tapeClip;
+        tapeSource.clip = ResolvePlaybackClip();   // the original, or the amplified copy when boosting
         tapeSource.volume = volume;
         tapeSource.spatialBlend = 0f;     // 2D: full clarity anywhere in the scene
         tapeSource.loop = false;
@@ -304,7 +333,14 @@ public class CassetteTapePlayer : MonoBehaviour
         ShowPrompt();
         SyncPromptVisuals();
 
-        if (debugLogs) Debug.Log("[CassetteTapePlayer] '" + name + "': playing '" + tapeClip.name + "' (" + tapeClip.length.ToString("0.#") + " s).", this);
+        if (debugLogs)
+        {
+            string boost = BoostGain > 1.001f && tapeSource.clip != tapeClip
+                ? " (loudness boost x" + BoostGain.ToString("0.#") + ")"
+                : "";
+            Debug.Log("[CassetteTapePlayer] '" + name + "': playing '" + tapeClip.name + "' (" +
+                      tapeClip.length.ToString("0.#") + " s)" + boost + ".", this);
+        }
     }
 
     /// <summary>Stops the tape and removes the skip prompt.</summary>
@@ -380,6 +416,133 @@ public class CassetteTapePlayer : MonoBehaviour
                              "' found — the tape plays from this spot instead (still 2D, still clearly audible).", this);
         }
         return null;
+    }
+
+    // ------------------------------------------------------------------ //
+    // Loudness boost — the tape can be LOUDER than the original file
+    // ------------------------------------------------------------------ //
+
+    /// <summary>The clamped boost multiplier (1 = original level, 4 = four times).</summary>
+    private float BoostGain
+    {
+        get { return Mathf.Clamp(loudnessBoost, 1f, 4f); }
+    }
+
+    /// <summary>
+    /// The clip that should play right now: the original, or the amplified
+    /// copy when a boost is set. The copy is built once per gain value and
+    /// reused for every replay; a clip that cannot be amplified (streaming
+    /// load type) falls back to the original with one Console warning.
+    /// </summary>
+    private AudioClip ResolvePlaybackClip()
+    {
+        if (tapeClip == null) return null;
+
+        float gain = BoostGain;
+        if (gain <= 1.001f)
+        {
+            ReleaseAmplifiedClip();          // boost turned off — stop holding the copy
+            return tapeClip;
+        }
+
+        // a different clip was assigned — the availability answer resets with it
+        if (boostSourceClip != tapeClip)
+        {
+            boostSourceClip = tapeClip;
+            warnedBoostUnavailable = false;
+        }
+
+        // already built for exactly this gain — reuse it (replays cost nothing)
+        if (playbackClip != null && Mathf.Abs(builtBoostGain - gain) < 0.001f) return playbackClip;
+
+        // already known-impossible for this clip — never retried every frame
+        if (warnedBoostUnavailable) return tapeClip;
+
+        AudioClip amplified = BuildAmplifiedClip(tapeClip, gain);
+        if (amplified == null) return tapeClip;   // warning printed inside — original level for now
+
+        ReleaseAmplifiedClip();                    // a stale copy from a previous gain value
+        playbackClip = amplified;
+        builtBoostGain = gain;
+        return playbackClip;
+    }
+
+    /// <summary>
+    /// Builds a runtime copy of the clip with every sample multiplied by the
+    /// gain. If the loudest moment would exceed the clean maximum (1.0), the
+    /// whole tape is scaled back so that moment sits exactly at 1.0 —
+    /// maximum loudness, zero crackle. The original asset is never modified.
+    /// </summary>
+    private AudioClip BuildAmplifiedClip(AudioClip source, float gain)
+    {
+        if (source.samples <= 0 || source.channels <= 0)
+        {
+            WarnBoostUnavailable(source, "the clip reports no audio data to amplify");
+            return null;
+        }
+
+        float[] data = new float[source.samples * source.channels];
+        bool ok = false;
+        try { ok = source.GetData(data, 0); } catch { ok = false; }
+        if (!ok)
+        {
+            WarnBoostUnavailable(source, "the clip's audio data could not be read — its Load Type is probably 'Streaming'");
+            return null;
+        }
+
+        float peak = 0f;
+        for (int i = 0; i < data.Length; i++)
+        {
+            data[i] *= gain;
+            float a = data[i] < 0f ? -data[i] : data[i];
+            if (a > peak) peak = a;
+        }
+        if (peak > 1f)                       // cap the loudest moment at the clean maximum
+        {
+            float scale = 1f / peak;
+            for (int i = 0; i < data.Length; i++) data[i] *= scale;
+        }
+
+        AudioClip copy = AudioClip.Create(source.name + " (boosted x" + gain.ToString("0.#") + ")",
+                                          source.samples, source.channels, source.frequency, false);
+        copy.SetData(data, 0);
+        return copy;
+    }
+
+    /// <summary>One clear, actionable warning per clip — never per-frame spam.</summary>
+    private void WarnBoostUnavailable(AudioClip source, string reason)
+    {
+        if (warnedBoostUnavailable) return;
+        warnedBoostUnavailable = true;
+        Debug.LogWarning("[CassetteTapePlayer] '" + name + "': Loudness Boost inactive — " + reason + ". " +
+                         "Set '" + source.name + "' → Inspector → Load Type to 'Decompress On Load' " +
+                         "(Unity's default for imported audio). The tape plays at normal volume until then.", this);
+    }
+
+    /// <summary>Frees the amplified copy (never the original asset).</summary>
+    private void ReleaseAmplifiedClip()
+    {
+        if (playbackClip == null) return;    // Unity fake-null: also catches a destroyed copy
+        Destroy(playbackClip);
+        playbackClip = null;
+        builtBoostGain = 1f;
+    }
+
+    /// <summary>
+    /// Live boost-slider response: swaps the playing clip without losing the
+    /// playing position. Costs nothing while the slider is untouched.
+    /// </summary>
+    private void SyncLiveLoudness()
+    {
+        if (tapeSource == null) return;
+
+        AudioClip desired = ResolvePlaybackClip();   // cheap unless the gain or clip changed
+        if (desired == null || desired == tapeSource.clip) return;
+
+        float position = tapeSource.time;
+        tapeSource.clip = desired;
+        tapeSource.Play();
+        tapeSource.time = position;
     }
 
     /// <summary>Tag lookup that survives a tag that does not exist in the project yet.</summary>
@@ -579,6 +742,7 @@ public class CassetteTapePlayer : MonoBehaviour
     private void OnValidate()
     {
         volume = Mathf.Clamp01(volume);
+        loudnessBoost = Mathf.Clamp(loudnessBoost, 1f, 4f);
         promptFontSize = Mathf.Clamp(promptFontSize, 10, 80);
         promptOffsetY = Mathf.Max(0f, promptOffsetY);
         canvasSortingOrder = Mathf.Clamp(canvasSortingOrder, 0, 32767);
