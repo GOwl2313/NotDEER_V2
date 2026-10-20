@@ -107,6 +107,7 @@ GameObject:
   - component: {fileID: -1118715085667374070}
   - component: {fileID: 8655260980728104035}
   - component: {fileID: 1118115795060236142}
+  - component: {fileID: 3640859271406752332}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Enemy
@@ -224,7 +225,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyController
   player: {fileID: 7114426969352601263, guid: 4615f4cd0019d74469f6548efd0684a9, type: 3}
   flashlightDetector: {fileID: 0}
-  moveSpeed: 11
+  moveSpeed: 20
   stopDistance: 0.5
   resumeDistance: 3
   waitTime: 5
@@ -353,6 +354,28 @@ MonoBehaviour:
   speedSampleWindow: 0.5
   useSpawnerRange: 1
   outOfRangeDistance: 30
-  outOfRangeTimeLimit: 10
+  outOfRangeTimeLimit: 30
   respawnDelay: 5
   debugLog: 1
+--- !u!114 &3640859271406752332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6991521355028372668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db73cb9b3dadf9e4c94924319129bf6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GroundStick
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  groundSnapDistance: 0.6
+  maxSlopeAngle: 55
+  stickPullStrength: 20
+  maxStickFallSpeed: 10
+  applyDepenetrationCap: 1
+  maxDepenetrationVelocity: 2
+  debugLogs: 0
