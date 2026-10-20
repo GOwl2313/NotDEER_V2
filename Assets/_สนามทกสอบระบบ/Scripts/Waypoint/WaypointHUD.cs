@@ -131,7 +131,7 @@ public class WaypointHUD : MonoBehaviour
         if (instance != null) return instance;
 
 #if UNITY_2023_1_OR_NEWER
-        instance = Object.FindFirstObjectByType<WaypointHUD>();
+        instance = Object.FindAnyObjectByType<WaypointHUD>();
 #else
         instance = FindObjectOfType<WaypointHUD>();
 #endif
