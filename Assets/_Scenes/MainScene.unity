@@ -270,7 +270,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8136825853383352516, guid: 33e687402343a814fbbf3e17eaaf932b, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1792096034}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 39740538541062249, guid: 33e687402343a814fbbf3e17eaaf932b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1663878181}
   m_SourcePrefab: {fileID: 100100000, guid: 33e687402343a814fbbf3e17eaaf932b, type: 3}
 --- !u!1001 &5643171
 PrefabInstance:
@@ -2933,6 +2936,11 @@ CapsuleCollider:
   m_Height: 4.343055
   m_Direction: 1
   m_Center: {x: -0.06714556, y: 1.6715276, z: 0.058994744}
+--- !u!1 &91123688 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 39740538541062249, guid: 33e687402343a814fbbf3e17eaaf932b, type: 3}
+  m_PrefabInstance: {fileID: 3753472}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &96132607 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3003476188103367082, guid: a8b64a54ea8932e4db85b9bfff78e934, type: 3}
@@ -32575,6 +32583,103 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8136825853383352516, guid: 33e687402343a814fbbf3e17eaaf932b, type: 3}
   m_PrefabInstance: {fileID: 3753472}
   m_PrefabAsset: {fileID: 0}
+--- !u!82 &1663878181
+AudioSource:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 91123688}
+  m_Enabled: 1
+  serializedVersion: 4
+  OutputAudioMixerGroup: {fileID: 0}
+  m_audioClip: {fileID: 0}
+  m_Resource: {fileID: 8300000, guid: 392b1575ae158854587ece006ffa3d2d, type: 3}
+  m_PlayOnAwake: 1
+  m_Volume: 1
+  m_Pitch: 1
+  Loop: 0
+  Mute: 0
+  Spatialize: 0
+  SpatializePostEffects: 0
+  Priority: 128
+  DopplerLevel: 1
+  MinDistance: 1
+  MaxDistance: 10
+  Pan2D: 0
+  rolloffMode: 0
+  BypassEffects: 0
+  BypassListenerEffects: 0
+  BypassReverbZones: 0
+  rolloffCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 1
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  panLevelCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  spreadCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
+  reverbZoneMixCustomCurve:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
 --- !u!1001 &1671425479
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -42082,6 +42187,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 392f9eb2b0b4fdc46abbdeed45c991b8, type: 3}
     - {fileID: 8300000, guid: 2a95df861ba824b499e5bafce7d20642, type: 3}
     - {fileID: 8300000, guid: e80f7fe1509cdaf4a89ec8a4684ab45f, type: 3}
+    - {fileID: 8300000, guid: 4c04bd7a49805af42a4dda26e906f94e, type: 3}
     terrainLayers:
     - {fileID: 8574412962073106934, guid: a81050ac684e8ef438628a0ed178d144, type: 2}
     alsoWhenDetailGrassPresent: 0
@@ -42094,6 +42200,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 31e0653d211a30c40b380eeda90f318f, type: 3}
     - {fileID: 8300000, guid: 15d1f8ce60e6fc141a40dbba5abf612e, type: 3}
     - {fileID: 8300000, guid: ca1e4c6ae63b94c43bf2f39e7dfd232b, type: 3}
+    - {fileID: 8300000, guid: 4c04bd7a49805af42a4dda26e906f94e, type: 3}
     terrainLayers:
     - {fileID: 8574412962073106934, guid: 82aea1bf4675be54487e9d7583efd53c, type: 2}
     alsoWhenDetailGrassPresent: 0
@@ -42106,6 +42213,7 @@ MonoBehaviour:
     - {fileID: 8300000, guid: 408973ea0f0c42a4ba769407ec7bdfcf, type: 3}
     - {fileID: 8300000, guid: e23f5f49a8f599746989988afd0e3ff2, type: 3}
     - {fileID: 8300000, guid: e5ce7a80348096a46929452785d7d24b, type: 3}
+    - {fileID: 8300000, guid: 4c04bd7a49805af42a4dda26e906f94e, type: 3}
     terrainLayers:
     - {fileID: 8574412962073106934, guid: e0d9469a58c161248b9ac0a71f7750ba, type: 2}
     alsoWhenDetailGrassPresent: 0

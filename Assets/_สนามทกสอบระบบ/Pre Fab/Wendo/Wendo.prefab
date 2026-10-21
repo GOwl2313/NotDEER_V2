@@ -1341,7 +1341,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ffce9e7c42abebc42ac3fc3c8bd243f5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyFootsteps
-  surfaces: []
+  surfaces:
+  - name: 
+    clips:
+    - {fileID: 8300000, guid: 953562c6154a4594bbd214b4173362bc, type: 3}
+    - {fileID: 8300000, guid: a8a543a5abd5f7b45b9c206bdbb578ed, type: 3}
+    - {fileID: 8300000, guid: ffbc6e9fa0823294ea98c9819eced209, type: 3}
+    - {fileID: 8300000, guid: 28fac26c8eb593e4e874861e3fa8c24a, type: 3}
+    - {fileID: 8300000, guid: 10508d564ae6b634785402a7db5cca4e, type: 3}
+    - {fileID: 8300000, guid: ae87f21cdf693d64da57bb6ab72798c3, type: 3}
+    terrainLayers:
+    - {fileID: 8574412962073106934, guid: e0d9469a58c161248b9ac0a71f7750ba, type: 2}
+    - {fileID: 8574412962073106934, guid: 82aea1bf4675be54487e9d7583efd53c, type: 2}
+    - {fileID: 8574412962073106934, guid: a81050ac684e8ef438628a0ed178d144, type: 2}
+    alsoWhenDetailGrassPresent: 0
+    volume: 0
   defaultSurface:
     name: Default
     clips:
@@ -1390,7 +1404,7 @@ MonoBehaviour:
       startAfterPreviousSeconds: 0
       delayAfterPreviousEndSeconds: 0
       sounds:
-      - clip: {fileID: 0}
+      - clip: {fileID: 8300000, guid: a89a16f7f39c4a34c8035c933e594fe5, type: 3}
         volume: 1
         loopMode: 0
         loopGroupSpan: 1
@@ -1412,9 +1426,9 @@ MonoBehaviour:
       startAfterPreviousSeconds: 0
       delayAfterPreviousEndSeconds: 0
       sounds:
-      - clip: {fileID: 0}
+      - clip: {fileID: 8300000, guid: 0d3e15e40e9593040bfc67ed65a45fac, type: 3}
         volume: 1
-        loopMode: 0
+        loopMode: 2
         loopGroupSpan: 1
   fleeStage:
     groups:
