@@ -10035,10 +10035,10 @@ MonoBehaviour:
   enemyPrefab: {fileID: 3696493194269880119, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
   player: {fileID: 7114426971200358694}
   playerCamera: {fileID: 426213901}
-  minSpawnDistance: 70
-  maxSpawnDistance: 90
-  respawnCooldownMin: 8
-  respawnCooldownMax: 12
+  minSpawnDistance: 20
+  maxSpawnDistance: 30
+  respawnCooldownMin: 7
+  respawnCooldownMax: 10
   autoSpawn: 1
   spawnInterval: 5
   spawnOnStart: 1
@@ -41982,6 +41982,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 3050660182331571823, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
+      propertyPath: moveSpeed
+      value: 10
+      objectReference: {fileID: 0}
     - target: {fileID: 3696493194269880119, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
       propertyPath: m_Name
       value: Wendo
