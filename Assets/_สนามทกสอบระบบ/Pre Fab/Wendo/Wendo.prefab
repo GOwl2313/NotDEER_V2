@@ -1150,15 +1150,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyController
   player: {fileID: 7114426969352601263, guid: 4615f4cd0019d74469f6548efd0684a9, type: 3}
   flashlightDetector: {fileID: 0}
-  moveSpeed: 20
+  moveSpeed: 8
   stopDistance: 0.5
   resumeDistance: 3
-  waitTime: 5
+  waitTime: 10
   stunDuration: 2
   disappearDuration: 3
   resetStunProgressOnLightBreak: 1
   facePlayerWhileMoving: 1
-  turnSpeed: 270
+  turnSpeed: 271
   idleColor: {r: 1, g: 1, b: 1, a: 1}
   movingColor: {r: 0, g: 1, b: 0, a: 1}
   stunnedColor: {r: 1, g: 0, b: 0, a: 1}
