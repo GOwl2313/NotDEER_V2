@@ -8,13 +8,13 @@ public enum EnemyState
 {
     /// <summary>Just spawned. Stands completely still for the configured wait time (default 2s).</summary>
     Waiting,
-    /// <summary>Chasing the player. Placeholder model is tinted green.</summary>
+    /// <summary>Chasing the player (attack animation).</summary>
     Moving,
-    /// <summary>Inside the stop radius around the player's center. Placeholder model is tinted white again.</summary>
+    /// <summary>Inside the stop radius around the player's center (idle animation).</summary>
     Stopped,
-    /// <summary>STUN STAGE — the flashlight is on the enemy (or it stands inside a SafeZone). Frozen in place and tinted red (placeholder for the enemy covering its face). The input must stay active continuously for Stun Duration to advance.</summary>
+    /// <summary>STUN STAGE — the flashlight is on the enemy (or it stands inside a SafeZone). Frozen in place (stun animation — the enemy covering its face). The input must stay active continuously for Stun Duration to advance.</summary>
     Stunned,
-    /// <summary>DISAPPEAR STAGE — fully stunned. Tinted blue (placeholder for the thrashing animation) for Disappear Duration, then the enemy despawns and the spawner rolls its random respawn cooldown.</summary>
+    /// <summary>DISAPPEAR STAGE — fully stunned for Disappear Duration, then the enemy despawns and the spawner rolls its random respawn cooldown.</summary>
     Disappearing
 }
 
@@ -24,17 +24,17 @@ public enum EnemyState
 /// Lifecycle:
 ///   1. Spawn (handled invisibly by <see cref="EnemySpawner"/>).
 ///   2. Wait  – stands perfectly still for Wait Time seconds (default 2).
-///   3. Move  – walks toward the player at Move Speed (turns green).
+///   3. Move  – walks toward the player at Move Speed (attack animation).
 ///   4. Stop  – freezes once inside the Stop Distance radius around the
-///              player's center (turns back to white).
+///              player's center (idle animation).
 ///   If the player later moves away beyond Resume Distance, the enemy
-///   starts chasing again (turns green).
+///   starts chasing again.
 ///
 /// Flashlight combat (v2.0):
 ///   Stun stage      – while the player's flashlight hits the enemy, the enemy
-///                     freezes in place and turns RED. The light must stay on it
+///                     freezes in place (stun animation). The light must stay on it
 ///                     CONTINUOUSLY for Stun Duration (default 0.5s).
-///   Disappear stage – after a full stun, the enemy turns BLUE for Disappear
+///   Disappear stage – after a full stun, the enemy stays frozen for Disappear
 ///                     Duration (default 0.5s), then despawns.
 ///
 /// v1.1 – Rigidbody support.
@@ -48,6 +48,13 @@ public enum EnemyState
 /// and automatic sync into an Animator (Bool parameters "IsAttack", "IsStun",
 /// "IsFlee" — names configurable). Parameters missing from the Animator
 /// Controller are skipped silently. No state-machine behaviour was changed.
+///
+/// v2.6 – PLACEHOLDER COLOR TINT REMOVED: the four state colors and the
+/// MaterialPropertyBlock tinting existed only for the old primitive model.
+/// The real Wendo model + its Animator now communicate state, so the model
+/// keeps its natural material colors in every state (and its renderers stay
+/// eligible for SRP batching). NO state-machine, timing, physics or
+/// animation-sync change of any kind.
 /// </summary>
 [DisallowMultipleComponent]
 public class EnemyController : MonoBehaviour
@@ -104,20 +111,6 @@ public class EnemyController : MonoBehaviour
 
     [Tooltip("Turning speed in degrees per second.")]
     [SerializeField] private float turnSpeed = 270f;
-
-    [Header("Placeholder Colors")]
-
-    [Tooltip("Color while waiting / stopped (default white).")]
-    [SerializeField] private Color idleColor = Color.white;
-
-    [Tooltip("Color while moving toward the player (green).")]
-    [SerializeField] private Color movingColor = Color.green;
-
-    [Tooltip("Color during the stun stage (red) — placeholder for the enemy covering its face.")]
-    [SerializeField] private Color stunnedColor = Color.red;
-
-    [Tooltip("Color during the disappear stage (blue) — placeholder for the thrashing animation.")]
-    [SerializeField] private Color disappearingColor = Color.blue;
 
     [Header("Physics (optional)")]
 
@@ -209,14 +202,8 @@ public class EnemyController : MonoBehaviour
     private int attackHash, stunHash, fleeHash;
     private bool hasAttackParam, hasStunParam, hasFleeParam;
 
-    private Renderer[] renderers;
-    private MaterialPropertyBlock propBlock;
     private Rigidbody rb;
     private bool usesPhysics;
-
-    // Setting both IDs covers the Built-in RP ("_Color") and URP ("_BaseColor") shaders.
-    private static readonly int BuiltinColorId = Shader.PropertyToID("_Color");
-    private static readonly int UrpBaseColorId = Shader.PropertyToID("_BaseColor");
 
     // ------------------------------------------------------------------ //
     // Unity messages
@@ -224,9 +211,6 @@ public class EnemyController : MonoBehaviour
 
     private void Awake()
     {
-        renderers = GetComponentsInChildren<Renderer>();
-        propBlock = new MaterialPropertyBlock();
-
         rb = GetComponent<Rigidbody>();
         usesPhysics = rb != null && useRigidbodyWhenAvailable && !rb.isKinematic;
 
@@ -563,27 +547,22 @@ public class EnemyController : MonoBehaviour
         {
             case EnemyState.Waiting:
                 waitTimer = waitTime;
-                SetColor(idleColor);
                 if (usesPhysics) SetPlanarVelocity(rb, Vector3.zero);
                 break;
 
             case EnemyState.Moving:
-                SetColor(movingColor);
                 break;
 
             case EnemyState.Stopped:
-                SetColor(idleColor);
                 if (usesPhysics) SetPlanarVelocity(rb, Vector3.zero);
                 break;
 
             case EnemyState.Stunned:
-                SetColor(stunnedColor);
                 if (usesPhysics) SetPlanarVelocity(rb, Vector3.zero);
                 break;
 
             case EnemyState.Disappearing:
                 disappearTimer = disappearDuration;
-                SetColor(disappearingColor);
                 if (usesPhysics) SetPlanarVelocity(rb, Vector3.zero);
                 break;
         }
@@ -657,22 +636,6 @@ public class EnemyController : MonoBehaviour
 
         Quaternion targetRotation = Quaternion.LookRotation(flatDirection.normalized);
         transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
-    }
-
-    /// <summary>Tints every renderer via MaterialPropertyBlock (no material instances created).</summary>
-    private void SetColor(Color color)
-    {
-        if (renderers == null) return;
-
-        for (int i = 0; i < renderers.Length; i++)
-        {
-            if (renderers[i] == null) continue;
-
-            renderers[i].GetPropertyBlock(propBlock);
-            propBlock.SetColor(BuiltinColorId, color);
-            propBlock.SetColor(UrpBaseColorId, color);
-            renderers[i].SetPropertyBlock(propBlock);
-        }
     }
 
     // ------------------------------------------------------------------ //
