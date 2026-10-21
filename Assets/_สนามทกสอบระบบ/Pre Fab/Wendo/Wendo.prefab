@@ -1150,7 +1150,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyController
   player: {fileID: 7114426969352601263, guid: 4615f4cd0019d74469f6548efd0684a9, type: 3}
   flashlightDetector: {fileID: 0}
-  moveSpeed: 10
+  moveSpeed: 20
   stopDistance: 0.5
   resumeDistance: 3
   waitTime: 5
