@@ -106,6 +106,8 @@ GameObject:
   - component: {fileID: -7452884543522396871}
   - component: {fileID: -1118715085667374070}
   - component: {fileID: 8655260980728104035}
+  - component: {fileID: 1118115795060236142}
+  - component: {fileID: 3640859271406752332}
   m_Layer: 0
   m_Name: Enemy
   m_TagString: Enemy
@@ -221,9 +223,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d481315e14714647b17bae1e1a49bcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyController
-  player: {fileID: 0}
-  flashlightDetector: {fileID: -1118715085667374070}
-  moveSpeed: 11
+  player: {fileID: 7114426969352601263, guid: 4615f4cd0019d74469f6548efd0684a9, type: 3}
+  flashlightDetector: {fileID: 0}
+  moveSpeed: 20
   stopDistance: 0.5
   resumeDistance: 3
   waitTime: 5
@@ -246,7 +248,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6991521355028372668}
   serializedVersion: 5
-  m_Mass: 1
+  m_Mass: 50
   m_LinearDamping: 0
   m_AngularDamping: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -332,3 +334,48 @@ MonoBehaviour:
   shrinkBeforeDespawn: 0
   shrinkDuration: 0.35
   stopCoroutinesOnPause: 0
+--- !u!114 &1118115795060236142
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6991521355028372668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a12bf8f2cd4e15848b6bc5fbada65257, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStuckDetector
+  controller: {fileID: 3388223554004497840}
+  player: {fileID: 505471397490552967, guid: f52d8fe9a96dbb6468aef2dd34c45525, type: 3}
+  spawner: {fileID: 0}
+  stuckSpeedThreshold: 1
+  stuckTimeLimit: 10
+  speedSampleWindow: 0.5
+  useSpawnerRange: 1
+  outOfRangeDistance: 30
+  outOfRangeTimeLimit: 30
+  respawnDelay: 5
+  debugLog: 1
+--- !u!114 &3640859271406752332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6991521355028372668}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: db73cb9b3dadf9e4c94924319129bf6c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::GroundStick
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  groundSnapDistance: 0.6
+  maxSlopeAngle: 55
+  stickPullStrength: 20
+  maxStickFallSpeed: 10
+  applyDepenetrationCap: 1
+  maxDepenetrationVelocity: 2
+  debugLogs: 0

@@ -42,34 +42,15 @@ Packages/packages-lock.json linguist-generated
 
 # Git LFS - Unity typical large/binary assets
 # Textures / images
-*.png  filter=lfs diff=lfs merge=lfs -text
-*.jpg  filter=lfs diff=lfs merge=lfs -text
-*.jpeg filter=lfs diff=lfs merge=lfs -text
-*.tga  filter=lfs diff=lfs merge=lfs -text
-*.psd  filter=lfs diff=lfs merge=lfs -text
-*.exr  filter=lfs diff=lfs merge=lfs -text
 
 # Audio
-*.wav  filter=lfs diff=lfs merge=lfs -text
-*.mp3  filter=lfs diff=lfs merge=lfs -text
-*.ogg  filter=lfs diff=lfs merge=lfs -text
 
 # Video
-*.mp4  filter=lfs diff=lfs merge=lfs -text
-*.mov  filter=lfs diff=lfs merge=lfs -text
 
 # 3D
-*.fbx   filter=lfs diff=lfs merge=lfs -text
-*.obj   filter=lfs diff=lfs merge=lfs -text
-*.blend filter=lfs diff=lfs merge=lfs -text
 
 # Plugins / packages / archives (Unity workflow)
-*.dll          filter=lfs diff=lfs merge=lfs -text
-*.unitypackage filter=lfs diff=lfs merge=lfs -text
-*.zip          filter=lfs diff=lfs merge=lfs -text
 
 # Unity Graph tools
-*.shadergraph filter=lfs diff=lfs merge=lfs -text
-*.vfx        filter=lfs diff=lfs merge=lfs -text
 
 *.asset binary
