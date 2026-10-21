@@ -9511,6 +9511,18 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 801914150}
     m_Modifications:
+    - target: {fileID: 221958090195611905, guid: 0e9bddbf48e160142a19388614a97dc3, type: 3}
+      propertyPath: iconTint.a
+      value: 0.19607843
+      objectReference: {fileID: 0}
+    - target: {fileID: 221958090195611905, guid: 0e9bddbf48e160142a19388614a97dc3, type: 3}
+      propertyPath: labelColor.a
+      value: 0.19607843
+      objectReference: {fileID: 0}
+    - target: {fileID: 221958090195611905, guid: 0e9bddbf48e160142a19388614a97dc3, type: 3}
+      propertyPath: distanceColor.a
+      value: 0.19607843
+      objectReference: {fileID: 0}
     - target: {fileID: 7197873738302276297, guid: 0e9bddbf48e160142a19388614a97dc3, type: 3}
       propertyPath: m_Name
       value: Totem_ B
@@ -41834,6 +41846,63 @@ PrefabInstance:
       addedObject: {fileID: 814363861}
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: f52d8fe9a96dbb6468aef2dd34c45525, type: 3}
+--- !u!1001 &5910983780327386612
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 3696493194269880119, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
+      propertyPath: m_Name
+      value: Wendo
+      objectReference: {fileID: 0}
+    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 155.24
+      objectReference: {fileID: 0}
+    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 29.264
+      objectReference: {fileID: 0}
+    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -13.581
+      objectReference: {fileID: 0}
+    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
 --- !u!1001 &6644206188167621899
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -41979,3 +42048,4 @@ SceneRoots:
   - {fileID: 1008372976}
   - {fileID: 545653780}
   - {fileID: 1277409967}
+  - {fileID: 5910983780327386612}
