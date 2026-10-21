@@ -41,6 +41,10 @@ using UnityEngine;
 ///      matches no surface).
 ///
 /// v1.0 – first version.
+/// v1.1 – compile fix: TerrainData.alphamapLayers (misspelled before).
+/// v1.2 – "Cut Previous Step" option (default ON): a new footstep now ends
+///        the previous one instead of stacking on top of it — footsteps can
+///        never overlap, even at fast cadences or with long clips.
 /// </summary>
 [RequireComponent(typeof(AudioSource))]
 [DisallowMultipleComponent]
@@ -107,6 +111,9 @@ public class PlayerFootsteps : MonoBehaviour
 
     [Tooltip("Random volume drop per step, as a fraction of the surface volume (0 = always full volume).")]
     [SerializeField, Range(0f, 0.5f)] private float volumeVariation = 0.15f;
+
+    [Tooltip("A new footstep CUTS the previous one instead of playing on top of it (steps never overlap). Turn OFF to let long steps blend together.")]
+    [SerializeField] private bool cutPreviousStep = true;
 
     // ------------------------------------------------------------------ //
     // Runtime
@@ -198,6 +205,14 @@ public class PlayerFootsteps : MonoBehaviour
         if (pitchVariation > 0f)
         {
             audioSource.pitch = 1f + (UnityEngine.Random.value * 2f - 1f) * pitchVariation;
+        }
+
+        // PlayOneShot voices stack — at fast cadences a new step would play on
+        // top of the still-sounding previous one. Stop() ends it first so two
+        // footsteps never overlap (the fresh step's attack masks the cut).
+        if (cutPreviousStep)
+        {
+            audioSource.Stop();
         }
 
         audioSource.PlayOneShot(clip, volumeScale);
