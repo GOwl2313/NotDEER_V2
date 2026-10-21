@@ -1130,8 +1130,8 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1.0499278, y: 1.0499278, z: 1.0499278}
-  m_ConstrainProportionsScale: 0
+  m_LocalScale: {x: 1.2, y: 1.2, z: 1.2}
+  m_ConstrainProportionsScale: 1
   m_Children:
   - {fileID: 8605463494189100796}
   m_Father: {fileID: 0}
@@ -1150,7 +1150,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyController
   player: {fileID: 7114426969352601263, guid: 4615f4cd0019d74469f6548efd0684a9, type: 3}
   flashlightDetector: {fileID: 0}
-  moveSpeed: 20
+  moveSpeed: 10
   stopDistance: 0.5
   resumeDistance: 3
   waitTime: 5
@@ -1158,7 +1158,7 @@ MonoBehaviour:
   disappearDuration: 3
   resetStunProgressOnLightBreak: 1
   facePlayerWhileMoving: 1
-  turnSpeed: 270
+  turnSpeed: 271
   idleColor: {r: 1, g: 1, b: 1, a: 1}
   movingColor: {r: 0, g: 1, b: 0, a: 1}
   stunnedColor: {r: 1, g: 0, b: 0, a: 1}
