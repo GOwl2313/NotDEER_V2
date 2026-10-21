@@ -583,63 +583,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 1281150986155205068, guid: 06ba1c8917c83244690befc1abdfbe67, type: 3}
   m_PrefabInstance: {fileID: 15893173}
   m_PrefabAsset: {fileID: 0}
---- !u!1001 &17128675
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 0}
-    m_Modifications:
-    - target: {fileID: 3696493194269880119, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
-      propertyPath: m_Name
-      value: Wendo
-      objectReference: {fileID: 0}
-    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 150.08325
-      objectReference: {fileID: 0}
-    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 29.453447
-      objectReference: {fileID: 0}
-    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: -24.237543
-      objectReference: {fileID: 0}
-    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8765384869295077213, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
 --- !u!1001 &19453792
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -16128,9 +16071,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eb0d8ef89ed9cdb408b0c8637baff891, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FogSphere
-  fogColor: {r: 0.32156864, g: 0.50980395, b: 0.5764706, a: 1}
-  radius: 10
-  density: 0.025
+  fogColor: {r: 0.42764327, g: 0.54377544, b: 0.5849056, a: 1}
+  radius: 20
+  density: 0.003
   noiseAmount: 0.15
   noiseScale: 0.35
   driftSpeed: 0.35
@@ -42036,4 +41979,3 @@ SceneRoots:
   - {fileID: 1008372976}
   - {fileID: 545653780}
   - {fileID: 1277409967}
-  - {fileID: 17128675}
