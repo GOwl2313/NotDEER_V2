@@ -1113,6 +1113,8 @@ GameObject:
   - component: {fileID: 6603672258714992324}
   - component: {fileID: 1327823937325697919}
   - component: {fileID: 31687392776058256}
+  - component: {fileID: 5830928747213759636}
+  - component: {fileID: -5798676245400170941}
   m_Layer: 0
   m_Name: Wendo
   m_TagString: Enemy
@@ -1159,10 +1161,6 @@ MonoBehaviour:
   resetStunProgressOnLightBreak: 1
   facePlayerWhileMoving: 1
   turnSpeed: 271
-  idleColor: {r: 1, g: 1, b: 1, a: 1}
-  movingColor: {r: 0, g: 1, b: 0, a: 1}
-  stunnedColor: {r: 1, g: 0, b: 0, a: 1}
-  disappearingColor: {r: 0, g: 0, b: 1, a: 1}
   useRigidbodyWhenAvailable: 1
   preventContactSpin: 1
   animator: {fileID: 682547320553739571}
@@ -1331,6 +1329,108 @@ CapsuleCollider:
   m_Height: 3.9420896
   m_Direction: 1
   m_Center: {x: 0, y: 1.9773004, z: 0}
+--- !u!114 &5830928747213759636
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3696493194269880119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffce9e7c42abebc42ac3fc3c8bd243f5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyFootsteps
+  surfaces: []
+  defaultSurface:
+    name: Default
+    clips:
+    - {fileID: 8300000, guid: 953562c6154a4594bbd214b4173362bc, type: 3}
+    - {fileID: 8300000, guid: a8a543a5abd5f7b45b9c206bdbb578ed, type: 3}
+    - {fileID: 8300000, guid: ffbc6e9fa0823294ea98c9819eced209, type: 3}
+    - {fileID: 8300000, guid: 28fac26c8eb593e4e874861e3fa8c24a, type: 3}
+    - {fileID: 8300000, guid: 10508d564ae6b634785402a7db5cca4e, type: 3}
+    - {fileID: 8300000, guid: ae87f21cdf693d64da57bb6ab72798c3, type: 3}
+    terrainLayers:
+    - {fileID: 8574412962073106934, guid: e0d9469a58c161248b9ac0a71f7750ba, type: 2}
+    - {fileID: 8574412962073106934, guid: 82aea1bf4675be54487e9d7583efd53c, type: 2}
+    - {fileID: 8574412962073106934, guid: a81050ac684e8ef438628a0ed178d144, type: 2}
+    alsoWhenDetailGrassPresent: 0
+    volume: 1
+  stepDistance: 3.5
+  minimumWalkSpeed: 0.15
+  teleportDistance: 1.5
+  groundRaycastHeight: 5
+  groundMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  configureAudioSource: 1
+  minDistance: 1
+  maxDistance: 50
+  pitchVariation: 0.08
+  volumeVariation: 0.15
+  cutPreviousStep: 1
+--- !u!114 &-5798676245400170941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3696493194269880119}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04ab5fdb640f751459ec9c1fdc097214, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyStageAudio
+  enemyController: {fileID: 3050660182331571823}
+  idleStage:
+    groups:
+    - name: Group
+      continueFromPrevious: 0
+      startAfterPreviousSeconds: 0
+      delayAfterPreviousEndSeconds: 0
+      sounds:
+      - clip: {fileID: 0}
+        volume: 1
+        loopMode: 0
+        loopGroupSpan: 1
+  attackStage:
+    groups:
+    - name: Group
+      continueFromPrevious: 0
+      startAfterPreviousSeconds: 0
+      delayAfterPreviousEndSeconds: 0
+      sounds:
+      - clip: {fileID: 0}
+        volume: 1
+        loopMode: 0
+        loopGroupSpan: 1
+  stunStage:
+    groups:
+    - name: Group
+      continueFromPrevious: 0
+      startAfterPreviousSeconds: 0
+      delayAfterPreviousEndSeconds: 0
+      sounds:
+      - clip: {fileID: 0}
+        volume: 1
+        loopMode: 0
+        loopGroupSpan: 1
+  fleeStage:
+    groups:
+    - name: Group
+      continueFromPrevious: 0
+      startAfterPreviousSeconds: 0
+      delayAfterPreviousEndSeconds: 0
+      sounds:
+      - clip: {fileID: 0}
+        volume: 1
+        loopMode: 0
+        loopGroupSpan: 1
+  configureAudioSources: 1
+  spatialBlend: 1
+  minDistance: 1
+  maxDistance: 60
 --- !u!1 &3876696039254352737
 GameObject:
   m_ObjectHideFlags: 0
