@@ -31,61 +31,23 @@ public enum EnemyState
 ///   starts chasing again (turns green).
 ///
 /// Flashlight combat (v2.0):
-///   Stun stage      – while the player's flashlight hits the enemy (see
-///                     <see cref="FlashlightDetector"/>: inside the cone, in
-///                     range, and nothing blocking the light), the enemy
-///                     freezes in place and turns RED (placeholder for the
-///                     enemy covering its face). The light must stay on it
-///                     CONTINUOUSLY for Stun Duration (default 0.5s) — the
-///                     anti-exploit timer. If the light breaks off early,
-///                     the enemy resumes its previous state and chases again.
-///   Disappear stage – after a full stun, the enemy turns BLUE (placeholder
-///                     for the thrashing animation) for Disappear Duration
-///                     (default 0.5s), then despawns. The spawner hears the
-///                     OnDespawned event, waits a random 12–18s (adjustable)
-///                     and respawns the enemy out of sight, restarting the
-///                     whole lifecycle.
+///   Stun stage      – while the player's flashlight hits the enemy, the enemy
+///                     freezes in place and turns RED. The light must stay on it
+///                     CONTINUOUSLY for Stun Duration (default 0.5s).
+///   Disappear stage – after a full stun, the enemy turns BLUE for Disappear
+///                     Duration (default 0.5s), then despawns.
 ///
-/// v1.1 – Rigidbody support: when the prefab has a (non-kinematic) Rigidbody,
-/// movement and rotation are applied through the physics engine in
-/// FixedUpdate (velocity + MoveRotation) instead of teleporting the
-/// transform. Without a Rigidbody the enemy behaves exactly like v1.0
-/// (direct transform movement).
+/// v1.1 – Rigidbody support.
+/// v2.0 – Flashlight stun / disappear stages, OnDespawned event.
+/// v2.1 – RUN-AWAY DESPAWN via EnemyFleeController.
+/// v2.2 – kinematic safety guard in SetPlanarVelocity().
+/// v2.3 – CONTACT SPIN FIX.
+/// v2.4 – SAFE ZONE support (SetSafeZoneStun).
 ///
-/// v2.0 – Flashlight stun / disappear stages, the OnDespawned event and the
-/// freeze-while-stunned physics handling (this version).
-///
-/// v2.1 – RUN-AWAY DESPAWN: the end of the disappear stage now hands over to
-/// EnemyFleeController (if present on the prefab) so the enemy runs away from
-/// the player before it despawns. Only Despawn() changed from v2.0; everything
-/// else is byte-identical.
-///
-/// v2.2 – kinematic safety guard in SetPlanarVelocity(): velocity writes on a
-/// kinematic Rigidbody are now skipped instead of letting Unity print
-/// "Setting linear velocity of a kinematic body is not supported" (such
-/// writes are ignored by physics anyway). This makes the wake-up ordering
-/// with EnemyFleeController a hard guarantee. Only that guard was added;
-/// v2.1 behaviour is otherwise unchanged.
-///
-/// v2.3 – CONTACT SPIN FIX (user report: "enemy spinned when touching any
-/// object, like the player did"): physics contact torque could rotate the
-/// enemy whenever it touched the player, walls or props. With a dynamic
-/// Rigidbody the enemy now gets the same proven recipe as the player fix —
-/// tilt frozen (X/Z rotation), maxAngularVelocity = 0 and a per-step angular
-/// velocity wipe — so contacts can NEVER rotate the body. All turning stays
-/// owned by this script (rb.MoveRotation), which keeps working unchanged.
-///
-/// v2.4 – SAFE ZONE support (for the SafeZone plug-in script): a SafeZone
-/// calls <see cref="SetSafeZoneStun"/> every frame while this enemy is
-/// inside its area. That input acts EXACTLY like the flashlight being held
-/// on the enemy — the enemy freezes in the stun stage (red) no matter where
-/// the player's light is pointing, then runs the normal disappear stage
-/// (blue) and runs away, exactly like a flashlight kill. The stun input is
-/// now "flashlight light OR inside a safe zone"; with no SafeZone in the
-/// scene the behaviour is byte-identical to v2.3.
-///
-/// Designed for a simple placeholder model (e.g. a white cube/sphere).
-/// Every tuning value is exposed in the Inspector.
+/// v2.5 – ANIMATION BOOLS: read-only IsAttack / IsStun / IsFlee (+ IsDisappearing)
+/// and automatic sync into an Animator (Bool parameters "IsAttack", "IsStun",
+/// "IsFlee" — names configurable). Parameters missing from the Animator
+/// Controller are skipped silently. No state-machine behaviour was changed.
 /// </summary>
 [DisallowMultipleComponent]
 public class EnemyController : MonoBehaviour
@@ -171,6 +133,20 @@ public class EnemyController : MonoBehaviour
              "driven by this script, never by physics.")]
     [SerializeField] private bool preventContactSpin = true;
 
+    [Header("Animation (optional)")]
+
+    [Tooltip("Animator ของโมเดลศัตรู ถ้าเว้นว่างจะหาจากตัวเอง/ลูกให้อัตโนมัติ")]
+    [SerializeField] private Animator animator;
+
+    [Tooltip("ชื่อ Bool parameter: กำลังพุ่งโจมตี (ไม่มีใน Animator = ข้ามเงียบๆ)")]
+    [SerializeField] private string isAttackParam = "IsAttack";
+
+    [Tooltip("ชื่อ Bool parameter: กลัวแสง (ไม่มีใน Animator = ข้ามเงียบๆ)")]
+    [SerializeField] private string isStunParam = "IsStun";
+
+    [Tooltip("ชื่อ Bool parameter: วิ่งหนี (ไม่มีใน Animator = ข้ามเงียบๆ)")]
+    [SerializeField] private string isFleeParam = "IsFlee";
+
     // ------------------------------------------------------------------ //
     // Runtime state (read-only from outside)
     // ------------------------------------------------------------------ //
@@ -193,6 +169,32 @@ public class EnemyController : MonoBehaviour
         get { return stunDuration > 0f ? Mathf.Clamp01(stunTimer / stunDuration) : 0f; }
     }
 
+    // ---- v2.5 animation bools ---------------------------------------- //
+
+    /// <summary>กำลังพุ่งโจมตี: ไล่พุ่งเข้าหาผู้เล่น (state Moving) และไม่ได้หนีอยู่</summary>
+    public bool IsAttack
+    {
+        get { return CurrentState == EnemyState.Moving && !isFleeing; }
+    }
+
+    /// <summary>กลัวแสง: โดนไฟฉาย/อยู่ใน SafeZone (state Stunned) — ตอนใช้มือปิดหน้า</summary>
+    public bool IsStun
+    {
+        get { return CurrentState == EnemyState.Stunned && !isFleeing; }
+    }
+
+    /// <summary>หนี: วิ่งหนีหลังผ่าน Disappear stage (EnemyFleeController ทำงานอยู่)</summary>
+    public bool IsFlee
+    {
+        get { return isFleeing; }
+    }
+
+    /// <summary>(แถม) ช่วงดิ้นทุรนทุราย — state Disappearing ก่อนเริ่มหนี</summary>
+    public bool IsDisappearing
+    {
+        get { return CurrentState == EnemyState.Disappearing && !isFleeing; }
+    }
+
     private float waitTimer;
     private float stunTimer;
     private float disappearTimer;
@@ -200,8 +202,12 @@ public class EnemyController : MonoBehaviour
     private float waitTimerAtStunStart;
 
     // v2.4: set by a SafeZone while this enemy stands inside its area.
-    // Combined with the flashlight input in IsStunInputActive.
     private bool safeZoneStun;
+
+    // v2.5: true from the moment the run-away starts until the enemy is destroyed.
+    private bool isFleeing;
+    private int attackHash, stunHash, fleeHash;
+    private bool hasAttackParam, hasStunParam, hasFleeParam;
 
     private Renderer[] renderers;
     private MaterialPropertyBlock propBlock;
@@ -224,12 +230,7 @@ public class EnemyController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         usesPhysics = rb != null && useRigidbodyWhenAvailable && !rb.isKinematic;
 
-        // v2.3 — THE SPIN FIX (same proven recipe as the player fix):
-        // freezing tilt stops the solver from tipping the enemy over, and
-        // maxAngularVelocity = 0 plus the per-step wipe in FixedUpdate means
-        // contacts can NEVER rotate the body. Turning stays owned by this
-        // script (rb.MoveRotation), so the physics-vs-script tug-of-war that
-        // looked like spinning is gone.
+        // v2.3 — THE SPIN FIX.
         if (usesPhysics && preventContactSpin)
         {
             rb.constraints |= RigidbodyConstraints.FreezeRotationX | RigidbodyConstraints.FreezeRotationZ;
@@ -246,6 +247,10 @@ public class EnemyController : MonoBehaviour
             GameObject found = GameObject.FindGameObjectWithTag("Player");
             if (found != null) player = found.transform;
         }
+
+        // v2.5: Animator lookup + parameter cache
+        if (animator == null) animator = GetComponentInChildren<Animator>();
+        CacheAnimatorParams();
     }
 
     private void Start()
@@ -270,9 +275,10 @@ public class EnemyController : MonoBehaviour
 
     private void OnEnable()
     {
-        // Covers both the very first spawn and pooled reuse (SetActive toggling):
-        // a freshly activated enemy always begins in the Waiting state.
-        safeZoneStun = false;   // v2.4: a fresh spawn never inherits a stale zone flag
+        // Covers both the very first spawn and pooled reuse (SetActive toggling).
+        // NOTE: isFleeing is intentionally NOT reset here — EnemyFleeController may
+        // toggle this component during the run-away and IsFlee must survive that.
+        safeZoneStun = false;
         EnterState(EnemyState.Waiting);
     }
 
@@ -305,6 +311,8 @@ public class EnemyController : MonoBehaviour
                 UpdateDisappearing();
                 break;
         }
+
+        SyncAnimator(); // v2.5
     }
 
     private void FixedUpdate()
@@ -312,13 +320,10 @@ public class EnemyController : MonoBehaviour
         if (!usesPhysics || player == null) return;
 
         // v2.3: wipe any angular velocity a contact may have injected this step.
-        // With maxAngularVelocity = 0 the solver already clamps it — this makes
-        // it a hard guarantee (identical to the player stabilizer's belt-and-braces).
         if (preventContactSpin && rb.angularVelocity.sqrMagnitude > 0f)
             rb.angularVelocity = Vector3.zero;
 
-        // Truly frozen while the flashlight holds the enemy (stun + disappear
-        // stages): horizontal velocity is pinned to zero every physics step.
+        // Truly frozen while the flashlight holds the enemy (stun + disappear stages).
         if (CurrentState == EnemyState.Stunned || CurrentState == EnemyState.Disappearing)
         {
             SetPlanarVelocity(rb, Vector3.zero);
@@ -369,8 +374,10 @@ public class EnemyController : MonoBehaviour
     /// <summary>Resets the enemy to the freshly-spawned Waiting state (useful for pooling).</summary>
     public void ResetEnemy()
     {
-        safeZoneStun = false;   // v2.4: pooled reuse starts outside any zone influence
+        safeZoneStun = false;
+        isFleeing = false;      // v2.5
         EnterState(EnemyState.Waiting);
+        SyncAnimator();
     }
 
     /// <summary>True while a SafeZone currently holds this enemy (read-only).</summary>
@@ -381,46 +388,30 @@ public class EnemyController : MonoBehaviour
 
     /// <summary>
     /// v2.4 – SAFE ZONE support. Called by a SafeZone every frame with
-    /// active = true while this enemy is inside its area. While active, this
-    /// is the same as the flashlight being held on the enemy: it enters the
-    /// stun stage immediately (frozen, red) and then continues into the
-    /// disappear stage and the run-away, exactly like a flashlight kill.
-    /// Called with active = false when the enemy leaves the zone (or the zone
-    /// is switched off) — if the flashlight is not on the enemy at that
-    /// moment, it simply resumes whatever it was doing before.
-    ///
-    /// Repeated calls with the same value are free (idempotent).
+    /// active = true while this enemy is inside its area. Acts exactly like the
+    /// flashlight being held on the enemy. Repeated calls with the same value are free.
     /// </summary>
     public void SetSafeZoneStun(bool active)
     {
         if (active)
         {
-            if (safeZoneStun) return;   // already applied this frame's input
+            if (safeZoneStun) return;
             safeZoneStun = true;
 
             if (CurrentState == EnemyState.Waiting ||
                 CurrentState == EnemyState.Moving ||
                 CurrentState == EnemyState.Stopped)
             {
-                // The same interrupt bookkeeping as a flashlight hit, so an
-                // interrupted enemy resumes naturally if the zone releases it
-                // before the full stun duration (and keeps its remaining
-                // post-spawn wait time).
                 stateBeforeStun = CurrentState;
                 waitTimerAtStunStart = waitTimer;
                 if (resetStunProgressOnLightBreak) stunTimer = 0f;
 
                 EnterState(EnemyState.Stunned);
             }
-            // Already Stunned (flashlight or zone) or Disappearing — the
-            // combined stun input keeps the timers running; nothing to do.
         }
         else
         {
             safeZoneStun = false;
-            // Nothing else needed: UpdateStunned re-evaluates the combined
-            // stun input (flashlight OR safe zone) and resumes the previous
-            // state naturally when neither one is active.
         }
     }
 
@@ -443,15 +434,12 @@ public class EnemyController : MonoBehaviour
 
         Vector3 toPlayer = Flatten(player.position - transform.position);
 
-        // Requirement: stop once inside the radius around the player's center.
         if (toPlayer.magnitude <= stopDistance)
         {
             EnterState(EnemyState.Stopped);
             return;
         }
 
-        // Direct transform movement (no usable Rigidbody on this prefab).
-        // Rigidbody movement runs in FixedUpdate instead.
         if (!usesPhysics)
         {
             transform.position += toPlayer.normalized * (moveSpeed * Time.deltaTime);
@@ -467,7 +455,6 @@ public class EnemyController : MonoBehaviour
     {
         if (player == null) return;
 
-        // Resume chasing once the player moves out of the resume radius.
         Vector3 toPlayer = Flatten(player.position - transform.position);
         if (toPlayer.magnitude > resumeDistance)
         {
@@ -479,25 +466,16 @@ public class EnemyController : MonoBehaviour
     // State machine — flashlight stages
     // ------------------------------------------------------------------ //
 
-    /// <summary>
-    /// Combined stun input (v2.4): the player's flashlight is on the enemy OR
-    /// the enemy is inside a SafeZone's area. Either one freezes it.
-    /// </summary>
+    /// <summary>Combined stun input (v2.4): flashlight on the enemy OR inside a SafeZone.</summary>
     private bool IsStunInputActive
     {
         get { return safeZoneStun || (flashlightDetector != null && flashlightDetector.IsLit); }
     }
 
-    /// <summary>
-    /// The moment the flashlight touches the enemy (any normal state) — or a
-    /// SafeZone holds it — it is frozen in place and enters the stun stage.
-    /// </summary>
     private void CheckStunInputs()
     {
         if (!IsStunInputActive) return;
 
-        // Remember where the enemy was interrupted so it can resume naturally
-        // when the light breaks — including how much spawn-wait time it had left.
         stateBeforeStun = CurrentState;
         waitTimerAtStunStart = waitTimer;
 
@@ -510,9 +488,6 @@ public class EnemyController : MonoBehaviour
     {
         if (IsStunInputActive)
         {
-            // Accumulate the continuous-input time. Once the light has been on
-            // the enemy (or the enemy has been inside a safe zone) for the full
-            // Stun Duration, advance to the disappear stage.
             stunTimer += Time.deltaTime;
             if (stunTimer >= stunDuration)
             {
@@ -521,8 +496,6 @@ public class EnemyController : MonoBehaviour
             return;
         }
 
-        // The input broke off before the full duration — the enemy is NOT
-        // fully stunned: it resumes normal behaviour and chases the player again.
         ResumeAfterInterruptedStun();
     }
 
@@ -530,8 +503,6 @@ public class EnemyController : MonoBehaviour
     {
         EnemyState resumeState = stateBeforeStun;
 
-        // Safety net — the stored state can never be one of the flashlight
-        // stages, but never trust runtime state blindly.
         if (resumeState == EnemyState.Stunned || resumeState == EnemyState.Disappearing)
         {
             resumeState = EnemyState.Moving;
@@ -539,8 +510,6 @@ public class EnemyController : MonoBehaviour
 
         EnterState(resumeState);
 
-        // If the enemy was interrupted during its post-spawn wait, give it
-        // back only the REMAINING wait time instead of the full wait again.
         if (resumeState == EnemyState.Waiting)
         {
             waitTimer = waitTimerAtStunStart;
@@ -557,29 +526,24 @@ public class EnemyController : MonoBehaviour
     }
 
     /// <summary>
-    /// v2.1 – RUN-AWAY DESPAWN: instead of vanishing on the spot at the end of
-    /// the disappear stage, the enemy now turns away from the player and RUNS
-    /// (EnemyFleeController on the same prefab), then despawns when the run
-    /// ends – it shrinks to zero while still running, so it never just pops
-    /// out of existence. If no EnemyFleeController is on the prefab, this
-    /// falls back to the v2.0 instant despawn automatically.
+    /// v2.1 – RUN-AWAY DESPAWN via EnemyFleeController (falls back to instant despawn
+    /// when none is on the prefab).
+    /// v2.5 – sets isFleeing and pushes IsFlee to the Animator immediately, because
+    /// the flee controller may disable this component (Update would no longer run).
     /// </summary>
     private void Despawn()
     {
         EnemyFleeController flee = GetComponent<EnemyFleeController>();
         if (flee != null && flee.BeginFlee(FinishDespawn, this))
         {
+            isFleeing = true;
+            SyncAnimator();
             return; // the enemy runs away; FinishDespawn() is called when it ends
         }
 
         FinishDespawn();
     }
 
-    /// <summary>
-    /// The actual despawn: notifies the spawner (random respawn cooldown) and
-    /// destroys the enemy. Called directly, or by EnemyFleeController after
-    /// the run-away finishes.
-    /// </summary>
     private void FinishDespawn()
     {
         OnDespawned?.Invoke(this);
@@ -595,34 +559,32 @@ public class EnemyController : MonoBehaviour
         bool changed = CurrentState != next;
         CurrentState = next;
 
-        // Re-entering the same state also refreshes the timer/colors, which keeps
-        // ResetEnemy()/pooled reuse correct.
         switch (next)
         {
             case EnemyState.Waiting:
                 waitTimer = waitTime;
-                SetColor(idleColor);   // default white
-                if (usesPhysics) SetPlanarVelocity(rb, Vector3.zero); // no sliding while waiting
+                SetColor(idleColor);
+                if (usesPhysics) SetPlanarVelocity(rb, Vector3.zero);
                 break;
 
             case EnemyState.Moving:
-                SetColor(movingColor); // green while moving
+                SetColor(movingColor);
                 break;
 
             case EnemyState.Stopped:
-                SetColor(idleColor);   // back to default white
-                if (usesPhysics) SetPlanarVelocity(rb, Vector3.zero); // hard stop
+                SetColor(idleColor);
+                if (usesPhysics) SetPlanarVelocity(rb, Vector3.zero);
                 break;
 
             case EnemyState.Stunned:
-                SetColor(stunnedColor);          // red — covering its face (placeholder)
-                if (usesPhysics) SetPlanarVelocity(rb, Vector3.zero); // frozen in place
+                SetColor(stunnedColor);
+                if (usesPhysics) SetPlanarVelocity(rb, Vector3.zero);
                 break;
 
             case EnemyState.Disappearing:
                 disappearTimer = disappearDuration;
-                SetColor(disappearingColor);     // blue — thrashing (placeholder)
-                if (usesPhysics) SetPlanarVelocity(rb, Vector3.zero); // still frozen
+                SetColor(disappearingColor);
+                if (usesPhysics) SetPlanarVelocity(rb, Vector3.zero);
                 break;
         }
 
@@ -633,14 +595,40 @@ public class EnemyController : MonoBehaviour
     // Helpers
     // ------------------------------------------------------------------ //
 
+    /// <summary>Caches parameter hashes and checks which Bool parameters exist in the Animator.</summary>
+    private void CacheAnimatorParams()
+    {
+        attackHash = Animator.StringToHash(isAttackParam);
+        stunHash = Animator.StringToHash(isStunParam);
+        fleeHash = Animator.StringToHash(isFleeParam);
+
+        hasAttackParam = hasStunParam = hasFleeParam = false;
+        if (animator == null || animator.runtimeAnimatorController == null) return;
+
+        foreach (AnimatorControllerParameter p in animator.parameters)
+        {
+            if (p.type != AnimatorControllerParameterType.Bool) continue;
+
+            if (p.nameHash == attackHash) hasAttackParam = true;
+            else if (p.nameHash == stunHash) hasStunParam = true;
+            else if (p.nameHash == fleeHash) hasFleeParam = true;
+        }
+    }
+
+    /// <summary>Pushes IsAttack / IsStun / IsFlee into the Animator (missing parameters are skipped).</summary>
+    private void SyncAnimator()
+    {
+        if (animator == null) return;
+
+        if (hasAttackParam) animator.SetBool(attackHash, IsAttack);
+        if (hasStunParam) animator.SetBool(stunHash, IsStun);
+        if (hasFleeParam) animator.SetBool(fleeHash, IsFlee);
+    }
+
     /// <summary>Replaces the horizontal part of the Rigidbody velocity, keeping gravity.</summary>
     private static void SetPlanarVelocity(Rigidbody body, Vector3 planar)
     {
-        // v2.2 guard: kinematic bodies ignore velocity writes and Unity prints
-        // "Setting linear velocity of a kinematic body is not supported" for
-        // each one. Skipping the write is behaviour-identical and keeps the
-        // console clean no matter who re-enabled this controller while a
-        // flee takeover still held the body kinematic.
+        // v2.2 guard: kinematic bodies ignore velocity writes.
         if (body == null || body.isKinematic) return;
 
 #if UNITY_6000_0_OR_NEWER
@@ -671,10 +659,7 @@ public class EnemyController : MonoBehaviour
         transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
     }
 
-    /// <summary>
-    /// Tints every renderer under this enemy. Uses a MaterialPropertyBlock so no
-    /// material instances are created and prefab sharing stays intact.
-    /// </summary>
+    /// <summary>Tints every renderer via MaterialPropertyBlock (no material instances created).</summary>
     private void SetColor(Color color)
     {
         if (renderers == null) return;
@@ -696,7 +681,6 @@ public class EnemyController : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        // Visualise the stop radius around this enemy's chase target.
         Transform target = player;
         if (target == null)
         {
