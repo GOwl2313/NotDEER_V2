@@ -32,6 +32,9 @@ using UnityEngine.XR;
 /// space) — no XR Interaction Toolkit, no GraphicRaycaster, no InputModule
 /// needed; it works with any world-space canvas made of Unity UI.
 ///
+/// v1.1 — the head camera for screen-point hints is resolved through
+///        VRPlayerSetup.XRCamera (the XR rig's camera) instead of a
+///        coin-flip Camera.main.
 /// v1.0 — initial release with the NotDEER VR layer.
 /// </summary>
 [DisallowMultipleComponent]
@@ -343,9 +346,16 @@ public class VRUIPointer : MonoBehaviour
         return head != null ? head.WorldToScreenPoint(worldPoint) : Vector3.zero;
     }
 
+    /// <summary>The head is the XR rig's camera (setup static first, Camera.main fallback).</summary>
     private Camera ResolveHeadCamera()
     {
         if (headCamera != null) return headCamera;
+
+        if (VRPlayerSetup.XRCamera != null)
+        {
+            headCamera = VRPlayerSetup.XRCamera;
+            return headCamera;
+        }
 
         headCamera = Camera.main;
         return headCamera;

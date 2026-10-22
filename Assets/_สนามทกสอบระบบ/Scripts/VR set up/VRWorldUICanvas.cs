@@ -30,6 +30,9 @@ using UnityEngine.UI;
 /// while the game is paused (Time.timeScale = 0), which is exactly when
 /// the pause menu needs to stay in front of your face.
 ///
+/// v1.1 — the head is resolved through VRPlayerSetup.XRCamera (the XR
+///        rig's camera) instead of a coin-flip Camera.main between two
+///        MainCamera-tagged cameras.
 /// v1.0 — initial release with the NotDEER VR layer.
 /// </summary>
 [RequireComponent(typeof(Canvas))]
@@ -314,9 +317,23 @@ public class VRWorldUICanvas : MonoBehaviour
     // Helpers
     // ------------------------------------------------------------------ //
 
+    /// <summary>
+    /// The head is the XR rig's camera — the setup's static reference first
+    /// (always the VR camera), Camera.main only as a fallback for manually
+    /// assembled scenes. With two MainCamera-tagged cameras in the scene
+    /// Camera.main alone is a coin flip — panels ended up "following" the
+    /// wrong camera entirely.
+    /// </summary>
     private Transform ResolveHeadCamera()
     {
         if (headCamera != null) return headCamera;
+
+        Transform xrHead = VRPlayerSetup.XRHead;
+        if (xrHead != null)
+        {
+            headCamera = xrHead;
+            return headCamera;
+        }
 
         Camera main = Camera.main;
         if (main != null) headCamera = main.transform;

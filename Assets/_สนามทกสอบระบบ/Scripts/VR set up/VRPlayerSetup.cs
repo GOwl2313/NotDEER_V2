@@ -1,45 +1,57 @@
 using UnityEngine;
 
 /// <summary>
-/// VR PLAYER SETUP (v1.0) — the one component that turns the copied scene
+/// VR PLAYER SETUP (v1.1) — the one component that turns the copied scene
 /// into the VR scene. Put it on the PLAYER ROOT (the GameObject tagged
 /// "Player"); on Play (or via right-click → "Setup VR Now") it wires the
 /// whole NotDEER VR layer automatically:
 ///
-///   1. XR RIG   — finds the "XR Origin (XR Rig/VR)" under the player,
-///                 re-parents it under the Player root at local zero (so
-///                 WARPS MOVE THE PLAYER ROOT and the hitbox, event points,
-///                 enemies and prompts all keep following like in the flat
-///                 game).
-///   2. CAMERAS  — deactivates the ORIGINAL flat-game camera GameObject
-///                 (fixes Unity's duplicate "MainCamera" tag warning and
-///                 the double AudioListener) and disables the flat-game
-///                 PlayerMovementController + PlayerCameraController.
-///                 Everything else (hitbox, footsteps, flashlight, HUDs…)
-///                 stays untouched — "the rest like the original one".
+///   1. XR RIG   — finds the "XR Origin (XR Rig/VR)" — under the player OR
+///                 anywhere else in the scene (Unity's menu drops it at the
+///                 scene root) — re-parents it under the Player root at
+///                 local zero, so WARPS MOVE THE PLAYER ROOT and the
+///                 hitbox, event points, enemies and prompts all keep
+///                 following like in the flat game. The rig's camera is
+///                 remembered in the static <see cref="XRCamera"/> so every
+///                 VR component uses THE VR CAMERA as "the head", never a
+///                 random Camera.main.
+///   2. CAMERAS  — takes over rendering for the WHOLE SCENE, not just the
+///                 player: every camera outside the XR rig (the flat game's
+///                 "Main Camera (1)" usually sits at the SCENE ROOT, not
+///                 under the Player) is deactivated and untagged. Fixes the
+///                 duplicate "MainCamera" tag warning, the double rendering
+///                 and the double AudioListener. Also disables the flat
+///                 PlayerMovementController + PlayerCameraController
+///                 WHEREVER they are (the orbit camera script usually lives
+///                 on the flat camera object, not on the player).
 ///   3. HANDS    — looks for existing XR Interaction Toolkit hand
 ///                 controllers under the rig; when none exist it creates
 ///                 "VR Left Hand" / "VR Right Hand" anchors under the
-///                 Camera Offset, each with a VRHandPoseDriver that reads
-///                 the controller straight from UnityEngine.XR (works with
-///                 the XR Interaction Simulator in the editor AND with a
-///                 real headset — no XRI code dependency at all).
+///                 Camera Offset, each with a VRHandPoseDriver (reads the
+///                 controller straight from UnityEngine.XR — works with the
+///                 XR Device/XR Interaction Simulator in the editor AND
+///                 with a real headset) and a VRHandVisual so you can
+///                 actually SEE the hand.
 ///   4. VR LAYER — installs the components, idempotently (never duplicates
 ///                 on re-runs):
 ///                   LEFT  hand: VRWarpLocomotion (white line + ring warp),
-///                               VRUIPointer, VRTouchPickup
+///                               VRUIPointer, VRTouchPickup, VRHandVisual
 ///                   RIGHT hand: VRFlashlightMount (beam expels enemies),
-///                               VRUIPointer, VRTouchPickup
+///                               VRUIPointer, VRTouchPickup, VRHandVisual
 ///                   PLAYER root: VRPauseMenu (menu spawns from left hand)
-///   5. AUDIO    — makes sure exactly one AudioListener survives (the XR
-///                 camera's) after the original camera is deactivated.
+///   5. AUDIO    — every AudioListener outside the XR rig is removed; the
+///                 XR camera is guaranteed exactly one.
 ///
 /// WHAT YOU STILL DO MANUALLY (see NotDEER_VRSetup.md):
 ///   • create the XR Origin via GameObject > XR > XR Origin (VR) and drag
-///     it under the Player (or anywhere — this script finds it under the
-///     player; keep it there),
-///   • install the XR Interaction Simulator (editor testing).
+///     it under the Player (anywhere works — this script finds it),
+///   • install the XR Device/XR Interaction Simulator (editor testing).
 ///
+/// v1.1 — scene-wide camera takeover (the flat camera can be at the scene
+///        root — v1.0 only looked under the Player and left a second
+///        MainCamera-tagged camera rendering), scene-wide flat-controller
+///        disabling, AudioListener cleanup, visible hands, static XRCamera
+///        for every head-relative calculation, Find-API deprecation fix.
 /// v1.0 — initial release with the NotDEER VR layer.
 /// </summary>
 [DisallowMultipleComponent]
@@ -54,11 +66,11 @@ public class VRPlayerSetup : MonoBehaviour
     [Tooltip("Run the whole setup automatically on Play (recommended). Manual: right-click this component → 'Setup VR Now'.")]
     [SerializeField] private bool autoSetupOnPlay = true;
 
-    [Tooltip("Disable the flat-game PlayerMovementController + PlayerCameraController (VR warping replaces walking; the XR camera replaces mouse look).")]
+    [Tooltip("Disable the flat-game PlayerMovementController + PlayerCameraController wherever they are in the scene (VR warping replaces walking; the XR camera replaces mouse look).")]
     [SerializeField] private bool disableFlatGameplay = true;
 
-    [Tooltip("Deactivate the original flat-game camera GameObject (fixes the duplicate MainCamera tag warning + double AudioListener). The XR Origin camera takes over.")]
-    [SerializeField] private bool disableOriginalCamera = true;
+    [Tooltip("Deactivate every camera outside the XR rig, scene-wide (fixes the duplicate MainCamera tag warning, double rendering and double AudioListener). The XR Origin camera takes over.")]
+    [SerializeField] private bool takeOverAllCameras = true;
 
     [Tooltip("Create 'VR Left Hand' / 'VR Right Hand' anchors when no XR Interaction Toolkit controllers exist under the rig.")]
     [SerializeField] private bool createHandsIfMissing = true;
@@ -67,6 +79,37 @@ public class VRPlayerSetup : MonoBehaviour
 
     [Tooltip("Log every setup step to the Console.")]
     [SerializeField] private bool verboseLogging = true;
+
+    // ------------------------------------------------------------------ //
+    // Shared head reference — every VR component resolves "the head"
+    // through this first (it is ALWAYS the XR rig's camera, never a
+    // leftover flat-game camera that happens to be tagged MainCamera).
+    // ------------------------------------------------------------------ //
+
+    private static Camera s_XRCamera;
+
+    /// <summary>
+    /// The XR rig's camera found by the last setup run (null before setup).
+    /// Lifetime-checked like any Unity object — a destroyed camera reads
+    /// as null here, and callers fall back to Camera.main.
+    /// </summary>
+    public static Camera XRCamera
+    {
+        get { return s_XRCamera; }
+    }
+
+    /// <summary>Convenience: the XR camera's transform (null when unknown).</summary>
+    public static Transform XRHead
+    {
+        get { return s_XRCamera != null ? s_XRCamera.transform : null; }
+    }
+
+    /// <summary>Play-mode entry reset — correct even with Domain Reload disabled.</summary>
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetStatics()
+    {
+        s_XRCamera = null;
+    }
 
     // ------------------------------------------------------------------ //
     // Runtime state
@@ -126,9 +169,15 @@ public class VRPlayerSetup : MonoBehaviour
         xrOrigin.localRotation = Quaternion.identity;
         xrOrigin.localScale = Vector3.one;
 
-        // ---- 2. cameras + flat gameplay ----
-        if (disableOriginalCamera) DeactivateOriginalCameras(xrOrigin);
+        // ---- 2. cameras + flat gameplay (scene-wide!) ----
+        if (!ClaimXRCamera(xrOrigin)) return;
+
+        // Order matters: the flat controllers are disabled FIRST (while
+        // their objects are still active — the legacy Find path on older
+        // Unity only sees active objects), then every foreign camera is
+        // deactivated + untagged.
         if (disableFlatGameplay) DisableFlatGameplay();
+        if (takeOverAllCameras) TakeOverSceneCameras(xrOrigin);
 
         // ---- 3. hands ----
         Transform leftHand, rightHand;
@@ -157,10 +206,10 @@ public class VRPlayerSetup : MonoBehaviour
         InstallOrAdd<VRPauseMenu>(gameObject);
 
         // ---- 5. audio ----
-        EnsureAudioListener(xrOrigin);
+        EnsureSingleAudioListener(xrOrigin);
 
         setupDone = true;
-        Log("VR layer installed: left hand = warp + UI pointer + touch pickup, right hand = flashlight + UI pointer + touch pickup, pause menu on the player root.");
+        Log("VR layer installed: left hand = warp + UI pointer + touch pickup + visual, right hand = flashlight + UI pointer + touch pickup + visual, pause menu on the player root.");
     }
 
     // ------------------------------------------------------------------ //
@@ -184,11 +233,11 @@ public class VRPlayerSetup : MonoBehaviour
             }
         }
 
-        // Scene-root fallback (matches the freshly created "XR Origin (VR)").
-        Transform[] all = Object.FindObjectsByType<Transform>(FindObjectsSortMode.None);
+        // Scene-wide fallback (matches the freshly created "XR Origin (VR)").
+        Transform[] all = FindAllScene<Transform>();
         for (int i = 0; i < all.Length; i++)
         {
-            if (all[i] != null && all[i].parent == null &&
+            if (all[i] != null && all[i] != transform &&
                 all[i].name.IndexOf("XR Origin", System.StringComparison.OrdinalIgnoreCase) >= 0)
             {
                 return all[i];
@@ -197,38 +246,68 @@ public class VRPlayerSetup : MonoBehaviour
         return null;
     }
 
-    /// <summary>Deactivates every camera GameObject under the player that is NOT part of the XR rig.</summary>
-    private void DeactivateOriginalCameras(Transform xrOrigin)
+    /// <summary>Remembers the XR rig's camera as THE head camera for the whole VR layer.</summary>
+    private bool ClaimXRCamera(Transform xrOrigin)
     {
-        Camera[] cameras = GetComponentsInChildren<Camera>(true);
+        Camera rigCamera = xrOrigin.GetComponentInChildren<Camera>(true);
+        if (rigCamera == null)
+        {
+            Debug.LogError("[VRPlayerSetup] The XR Origin has no camera — the VR layer cannot run. " +
+                           "Recreate it via GameObject > XR > XR Origin (VR).", this);
+            enabled = false;
+            return false;
+        }
+
+        rigCamera.gameObject.SetActive(true);
+        s_XRCamera = rigCamera;
+        Log("VR camera: '" + rigCamera.name + "' under '" + xrOrigin.name + "' — every VR component uses it as the head.");
+        return true;
+    }
+
+    /// <summary>
+    /// Deactivates every camera GameObject outside the XR rig and clears
+    /// their MainCamera tag — scene-wide. The flat game's camera is often a
+    /// scene-root object (NOT under the Player), so looking under the player
+    /// alone is not enough: two MainCamera-tagged cameras both render and
+    /// Camera.main becomes a coin flip. After this there is exactly one
+    /// enabled camera in the scene: the XR rig's.
+    /// </summary>
+    private void TakeOverSceneCameras(Transform xrOrigin)
+    {
+        Camera[] cameras = FindAllScene<Camera>();
         for (int i = 0; i < cameras.Length; i++)
         {
             Camera camera = cameras[i];
             if (camera == null) continue;
+            if (camera == s_XRCamera) continue;
 
-            // The XR rig's own camera stays (it becomes the player's eyes).
+            // The XR rig's own extra cameras (none in the standard prefab)
+            // stay with the rig.
             if (camera.transform.IsChildOf(xrOrigin)) continue;
 
             string cameraName = camera.gameObject.name;
             camera.gameObject.SetActive(false);
-            Log("Original camera '" + cameraName + "' deactivated (the XR Origin camera takes over; this also fixes the duplicate MainCamera tag warning).");
+            camera.gameObject.tag = "Untagged";
+            Log("Camera '" + cameraName + "' deactivated + untagged (the XR Origin camera takes over; this also fixes the duplicate MainCamera tag warning and the double AudioListener).");
         }
     }
 
     private void DisableFlatGameplay()
     {
-        PlayerMovementController movement = GetComponentInChildren<PlayerMovementController>();
-        if (movement != null)
+        // Scene-wide on purpose: PlayerCameraController usually sits on the
+        // flat camera object (scene root), not on the player.
+        PlayerMovementController[] movements = FindAllScene<PlayerMovementController>();
+        for (int i = 0; i < movements.Length; i++)
         {
-            movement.enabled = false;
-            Log("PlayerMovementController disabled (warping replaces walking).");
+            movements[i].enabled = false;
+            Log("PlayerMovementController on '" + movements[i].name + "' disabled (warping replaces walking).");
         }
 
-        PlayerCameraController look = GetComponentInChildren<PlayerCameraController>();
-        if (look != null)
+        PlayerCameraController[] looks = FindAllScene<PlayerCameraController>();
+        for (int i = 0; i < looks.Length; i++)
         {
-            look.enabled = false;
-            Log("PlayerCameraController disabled (the XR headset replaces mouse look).");
+            looks[i].enabled = false;
+            Log("PlayerCameraController on '" + looks[i].name + "' disabled (the XR headset replaces mouse look).");
         }
     }
 
@@ -245,7 +324,7 @@ public class VRPlayerSetup : MonoBehaviour
         VRHandPoseDriver driver = handGO.AddComponent<VRHandPoseDriver>();
         driver.Node = node == XRNodeLike.Left ? UnityEngine.XR.XRNode.LeftHand : UnityEngine.XR.XRNode.RightHand;
 
-        Log("Created '" + createdName + "' under '" + cameraOffset.name + "' (pose driven from UnityEngine.XR — works with the XR Interaction Simulator and real headsets).");
+        Log("Created '" + createdName + "' under '" + cameraOffset.name + "' (pose driven from UnityEngine.XR — works with the XR simulator and real headsets).");
         return handGO.transform;
     }
 
@@ -295,6 +374,7 @@ public class VRPlayerSetup : MonoBehaviour
 
         InstallOrAdd<VRUIPointer>(hand.gameObject);
         InstallOrAdd<VRTouchPickup>(hand.gameObject);
+        InstallOrAdd<VRHandVisual>(hand.gameObject);
     }
 
     private T InstallOrAdd<T>(GameObject host) where T : Component
@@ -307,16 +387,29 @@ public class VRPlayerSetup : MonoBehaviour
         return added;
     }
 
-    private void EnsureAudioListener(Transform xrOrigin)
+    /// <summary>
+    /// Exactly one AudioListener survives: the XR camera's. Listeners
+    /// outside the rig (e.g. on the deactivated flat camera) are removed.
+    /// </summary>
+    private void EnsureSingleAudioListener(Transform xrOrigin)
     {
-        AudioListener listener = xrOrigin.GetComponentInChildren<AudioListener>();
-        if (listener != null) return;
-
-        Camera xrCamera = xrOrigin.GetComponentInChildren<Camera>();
-        if (xrCamera != null)
+        AudioListener rigListener = xrOrigin.GetComponentInChildren<AudioListener>(true);
+        if (rigListener == null && s_XRCamera != null)
         {
-            xrCamera.gameObject.AddComponent<AudioListener>();
-            Log("AudioListener added to the XR camera (the original camera's listener is gone with it).");
+            s_XRCamera.gameObject.AddComponent<AudioListener>();
+            Log("AudioListener added to the XR camera.");
+        }
+
+        AudioListener[] listeners = FindAllScene<AudioListener>();
+        for (int i = 0; i < listeners.Length; i++)
+        {
+            AudioListener listener = listeners[i];
+            if (listener == null) continue;
+            if (listener.transform.IsChildOf(xrOrigin)) continue;
+
+            string listenerName = listener.name;
+            Destroy(listener);
+            Log("AudioListener on '" + listenerName + "' removed (exactly one listener — the XR camera's — survives).");
         }
     }
 
@@ -334,5 +427,22 @@ public class VRPlayerSetup : MonoBehaviour
     {
         Left,
         Right
+    }
+
+    /// <summary>
+    /// Version-correct "find every instance in the scene" helper:
+    /// Unity 6.4+ (6000.4) deprecated every FindObjectsSortMode-taking and
+    /// FindFirstObjectByType overload — this uses the current API there,
+    /// the 2023 form on 2023–6.3, and the legacy form before that.
+    /// </summary>
+    private static T[] FindAllScene<T>() where T : Component
+    {
+#if UNITY_6000_4_OR_NEWER
+        return Object.FindObjectsByType<T>(FindObjectsInactive.Include);
+#elif UNITY_2023_1_OR_NEWER
+        return Object.FindObjectsByType<T>(FindObjectsInactive.Include, FindObjectsSortMode.None);
+#else
+        return Object.FindObjectsOfType<T>();
+#endif
     }
 }

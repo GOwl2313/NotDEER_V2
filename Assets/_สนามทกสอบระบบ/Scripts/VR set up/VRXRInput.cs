@@ -105,6 +105,16 @@ public static class VRXRInput
         return !ResolveDevice(XRNode.LeftHand).isValid && !ResolveDevice(XRNode.RightHand).isValid;
     }
 
+    /// <summary>
+    /// The connected device's name (e.g. "XR Simulator Controller") — null
+    /// when no device exists. Used for the one-time "tracking OK" logs.
+    /// </summary>
+    public static string DeviceName(XRNode node)
+    {
+        InputDevice device = ResolveDevice(node);
+        return device.isValid ? device.name : null;
+    }
+
     /// <summary>Logs a one-time hint that no XR controllers were found (editor convenience).</summary>
     public static void WarnNoControllersOnce(float afterSecondsHint)
     {

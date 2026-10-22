@@ -3,7 +3,7 @@ using UnityEngine.Events;
 using UnityEngine.XR;
 
 /// <summary>
-/// VR WARP LOCOMOTION (v1.0) — the player's VR movement: point the LEFT hand
+/// VR WARP LOCOMOTION (v1.1) — the player's VR movement: point the LEFT hand
 /// at the ground, a straight WHITE LINE is drawn from the hand to the spot
 /// and a CIRCLE RING hovers on the ground exactly where the player is
 /// pointing. Press the warp button (left Trigger by default) and the player
@@ -21,13 +21,21 @@ using UnityEngine.XR;
 ///   (spot - head position) with the height cancelled, so wherever you
 ///   physically stand inside your play space, YOUR VIEW lands on the ring.
 ///
+/// AIM FEEDBACK (new in v1.1)
+///   The white line is now ALWAYS drawn while you aim (unless the game is
+///   frozen or the same hand is pointing at a UI): to the pointed spot when
+///   it is a valid warp, to the hit point when the surface is unwarpable,
+///   and out to Max Warp Distance when the ray hits nothing at all. The
+///   RING still appears only for a VALID spot (that is the "you can go
+///   here" marker). You always see where the hand is pointing — the line
+///   never silently disappears.
+///
 /// VALIDITY RULES (when the ring shows)
 ///   • the hand ray must hit something within Max Warp Distance,
 ///   • the surface must be walkable (not steeper than Max Ground Slope),
 ///   • the spot must not be below/above the player by more than
 ///     Max Vertical Difference (a cliff drop is not a warp),
 ///   • the spot must be at least Min Warp Distance away horizontally.
-///   Invalid → line and ring are simply hidden (nothing to warp to).
 ///
 /// INPUT (via VRXRInput — no XR Interaction Toolkit dependency)
 ///   Left Trigger by default; configurable to Grip/Primary/Secondary.
@@ -38,6 +46,9 @@ using UnityEngine.XR;
 ///   hand's VRUIPointer is aiming at a world-space UI that frame, the warp
 ///   stands down so the trigger click can activate the UI instead.
 ///
+/// v1.1 — always-visible aim line (even when the spot is invalid) + the
+///        head is resolved through VRPlayerSetup.XRCamera (the XR rig's
+///        camera) instead of a coin-flip Camera.main.
 /// v1.0 — initial release with the NotDEER VR layer.
 /// </summary>
 [DisallowMultipleComponent]
@@ -81,6 +92,9 @@ public class VRWarpLocomotion : MonoBehaviour
 
     [Tooltip("Width of the line in meters.")]
     [SerializeField, Range(0.001f, 0.05f)] private float lineWidth = 0.01f;
+
+    [Tooltip("Keep drawing the line while aiming even when the spot is NOT a valid warp (to the hit point, or to Max Warp Distance when nothing is hit). The ring still marks valid spots only. Turn off for the old silent behaviour.")]
+    [SerializeField] private bool showLineEvenWhenInvalid = true;
 
     [Header("Ground Ring")]
 
@@ -157,45 +171,60 @@ public class VRWarpLocomotion : MonoBehaviour
             return;
         }
 
-        bool valid = ComputeWarpSpot(out Vector3 spot, out Vector3 surfaceNormal);
+        bool hitSomething = Physics.Raycast(transform.position, transform.forward,
+            out RaycastHit hit, maxWarpDistance, warpLayers, QueryTriggerInteraction.Ignore);
 
-        if (valid)
+        Vector3 spot = Vector3.zero;
+        Vector3 surfaceNormal = Vector3.up;
+        bool valid = hitSomething && EvaluateSpot(hit, out spot, out surfaceNormal);
+
+        // The line is the live "this is where my hand points" feedback —
+        // valid spot, unwarpable hit, or empty air, it always shows.
+        if (valid || showLineEvenWhenInvalid)
         {
-            ShowVisuals(spot, surfaceNormal);
+            Vector3 lineEnd = hitSomething ? hit.point
+                                           : transform.position + transform.forward * maxWarpDistance;
+            ShowLine(lineEnd);
         }
         else
         {
-            HideVisuals();
-            return;
+            HideLine();
+        }
+
+        if (valid)
+        {
+            ShowRing(spot, surfaceNormal);
+            IsPointingAtValidSpot = true;
+            CurrentWarpPoint = spot;
+        }
+        else
+        {
+            HideRing();
+            IsPointingAtValidSpot = false;
+
+            if (!showLineEvenWhenInvalid) return;
         }
 
         // Only ask for the edge AFTER we know a warp is possible (the
         // frame-cached edge stays valid for other callers either way).
-        if (VRXRInput.GetButtonDown(XRNode.LeftHand, warpButton) && Time.unscaledTime >= cooldownUntil)
+        if (valid && VRXRInput.GetButtonDown(XRNode.LeftHand, warpButton) && Time.unscaledTime >= cooldownUntil)
         {
             Warp(spot);
         }
     }
 
     // ------------------------------------------------------------------ //
-    // Warp spot search
+    // Warp spot evaluation
     // ------------------------------------------------------------------ //
 
-    private bool ComputeWarpSpot(out Vector3 spot, out Vector3 surfaceNormal)
+    /// <summary>A hit surface becomes a warp spot only when it passes every rule.</summary>
+    private bool EvaluateSpot(RaycastHit hit, out Vector3 spot, out Vector3 surfaceNormal)
     {
         spot = Vector3.zero;
         surfaceNormal = Vector3.up;
 
         Transform head = ResolveHeadCamera();
         if (head == null) return false;
-
-        Vector3 origin = transform.position;
-        Vector3 direction = transform.forward;
-
-        if (!Physics.Raycast(origin, direction, out RaycastHit hit, maxWarpDistance, warpLayers, QueryTriggerInteraction.Ignore))
-        {
-            return false;
-        }
 
         // Walkable surface? (steep walls and ceilings are not warp spots)
         if (Vector3.Dot(hit.normal, Vector3.up) < minGroundUpDot) return false;
@@ -304,39 +333,62 @@ public class VRWarpLocomotion : MonoBehaviour
         return mesh;
     }
 
-    private void ShowVisuals(Vector3 spot, Vector3 surfaceNormal)
+    private void ShowLine(Vector3 end)
     {
         if (warpLine == null) BuildVisuals();
 
-        // Line: hand → spot.
         warpLine.enabled = true;
         warpLine.SetPosition(0, transform.position);
-        warpLine.SetPosition(1, spot);
+        warpLine.SetPosition(1, end);
+    }
+
+    private void HideLine()
+    {
+        if (warpLine != null) warpLine.enabled = false;
+    }
+
+    private void ShowRing(Vector3 spot, Vector3 surfaceNormal)
+    {
+        if (warpLine == null) BuildVisuals();
 
         // Ring: hovering on the surface, aligned to its normal.
         ringTransform.gameObject.SetActive(true);
         ringTransform.position = spot + surfaceNormal * ringHoverHeight;
         ringTransform.rotation = Quaternion.FromToRotation(Vector3.up, surfaceNormal);
+    }
 
-        IsPointingAtValidSpot = true;
-        CurrentWarpPoint = spot;
+    private void HideRing()
+    {
+        if (ringTransform != null) ringTransform.gameObject.SetActive(false);
     }
 
     private void HideVisuals()
     {
         IsPointingAtValidSpot = false;
 
-        if (warpLine != null) warpLine.enabled = false;
-        if (ringTransform != null) ringTransform.gameObject.SetActive(false);
+        HideLine();
+        HideRing();
     }
 
     // ------------------------------------------------------------------ //
     // Lazy references
     // ------------------------------------------------------------------ //
 
+    /// <summary>
+    /// The HEAD is the XR rig's camera — resolved through the setup's
+    /// static reference first (always the VR camera), falling back to
+    /// Camera.main for manually assembled rigs.
+    /// </summary>
     private Transform ResolveHeadCamera()
     {
         if (headCamera != null) return headCamera;
+
+        Transform xrHead = VRPlayerSetup.XRHead;
+        if (xrHead != null)
+        {
+            headCamera = xrHead;
+            return headCamera;
+        }
 
         Camera main = Camera.main;
         if (main != null) headCamera = main.transform;
