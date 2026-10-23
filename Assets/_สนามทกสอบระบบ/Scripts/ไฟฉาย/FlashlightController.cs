@@ -115,6 +115,12 @@ public class FlashlightController : MonoBehaviour
              "0 = instant snap (tightest aim), higher = smoother with a little lag.")]
     [SerializeField] private float rotationSmoothing = 18f;
 
+    public enum AimMode { Camera, Hand }
+
+    [Tooltip("CAMERA = beam aims where the HEAD looks (original design). " +
+             "HAND = beam points wherever the flashlight MODEL points (true handheld VR).")]
+    [SerializeField] private AimMode aimMode = AimMode.Camera;
+
     [Header("Position (optional)")]
 
     [Tooltip("Follow the camera's position as well? OFF = the light stays wherever you parented it " +
@@ -361,6 +367,10 @@ public class FlashlightController : MonoBehaviour
         if (GamePauseManager.IsPaused) return;
 
         HandleToggleInput();
+
+        // v2.4 — HAND mode: the light lives under the flashlight model;
+        // don't touch the transform, so it fully follows the hand.
+        if (aimMode != AimMode.Camera) return;
 
         // ---- Aim where the camera looks (world-space, parent-independent) ----
         if (rotationSmoothing <= 0f)
