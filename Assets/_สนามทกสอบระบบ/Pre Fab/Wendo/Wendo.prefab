@@ -1443,8 +1443,8 @@ MonoBehaviour:
         loopGroupSpan: 1
   configureAudioSources: 1
   spatialBlend: 1
-  minDistance: 1
-  maxDistance: 60
+  minDistance: 5
+  maxDistance: 50
 --- !u!1 &3876696039254352737
 GameObject:
   m_ObjectHideFlags: 0
