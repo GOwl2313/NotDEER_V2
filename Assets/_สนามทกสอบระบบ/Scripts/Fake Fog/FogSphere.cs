@@ -91,6 +91,11 @@ using UnityEngine.Rendering;
 ///   RebuildFogSphere()         — also on the component's right-click menu.
 ///
 /// CHANGELOG
+///   v1.2 — VR FOLLOW: the fog now follows the XR Origin (XR Rig) first —
+///          explicit Follow Target → XR Origin → 'Player' tag — and in VR it
+///          centres on the headset's horizontal position (Follow Head In VR),
+///          so room-scale walking carries the fog too. No 'Player' tag needed
+///          in VR scenes; non-VR scenes behave exactly as before.
 ///   v1.1 — Unity 6000.5 compile fixes, reported from a live project:
 ///          • CS0619: Object.GetInstanceID() is obsolete-as-error in
 ///            Unity 6000.5+ — the depth-mode camera is now tracked by
@@ -159,8 +164,13 @@ public class FogSphere : MonoBehaviour
              "Player' (same convention as the other scripts).")]
     [SerializeField] private Transform followTargetOverride;
 
-    [Tooltip("Tag used to find the player when no override is assigned.")]
+    [Tooltip("Tag used to find the player when no override and no XR Origin is found.")]
     [SerializeField] private string playerTag = "Player";
+
+    [Tooltip("v1.2: in VR, centre the fog on the HEADSET's horizontal position " +
+             "(room-scale walking) instead of the XR Origin's floor point. " +
+             "Ignored in non-VR scenes.")]
+    [SerializeField] private bool followHeadInVR = true;
 
     [Tooltip("Nudges the sphere's centre up/down on the player's body.")]
     [SerializeField, Range(-2f, 2f)] private float centerHeightOffset = 0.25f;
@@ -203,6 +213,8 @@ public class FogSphere : MonoBehaviour
     private Material fogMaterial;            // owned instance (destroyed with us)
 
     private Transform followTarget;          // cached player
+    private Unity.XR.CoreUtils.XROrigin followRig;   // v1.2: the XR Origin on the target (null = non-VR)
+    private Transform rigCheckedFor;         // v1.2: target the rig lookup was done for
     private Camera mainCamera;               // cached main camera
     private Light autoBeamLight;             // cached auto-found flashlight
     private float refindTimer;               // player retry clock
@@ -333,7 +345,7 @@ public class FogSphere : MonoBehaviour
         Transform target = ResolveFollowTarget();
         if (target != null)
         {
-            center = target.position + Vector3.up * centerHeightOffset;
+            center = GetTargetPosition(target) + Vector3.up * centerHeightOffset;
         }
         fogTransform.position = center;
 
@@ -455,6 +467,21 @@ public class FogSphere : MonoBehaviour
         refindTimer = RefindInterval;
 
         playerFindAttempts++;
+
+        // v1.2: VR first — the XR Origin is the rig that actually moves with
+        // the player, and it works even when no object carries the 'Player' tag.
+        Unity.XR.CoreUtils.XROrigin rig = FindXROriginInScene();
+        if (rig != null)
+        {
+            followTarget = rig.transform;
+            if (debugLogs)
+            {
+                Debug.Log("[FogSphere] '" + name + "': following XR Origin '" +
+                          rig.name + "'.");
+            }
+            return followTarget;
+        }
+
         GameObject player = null;
         try { player = GameObject.FindGameObjectWithTag(playerTag); }
         catch { /* undefined tag — treated as "not found", like Unity */ }
@@ -477,6 +504,41 @@ public class FogSphere : MonoBehaviour
                 "Target' if the player uses a different tag.");
         }
         return null;
+    }
+
+    /// <summary>
+    /// v1.2 – the world position the fog is centred on. Non-VR: the target's own
+    /// position (unchanged). VR: the headset's horizontal position at the rig's
+    /// floor height, so walking around inside the play area carries the fog too.
+    /// </summary>
+    private Vector3 GetTargetPosition(Transform target)
+    {
+        if (rigCheckedFor != target)
+        {
+            rigCheckedFor = target;
+            followRig = target.GetComponent<Unity.XR.CoreUtils.XROrigin>();
+        }
+
+        Vector3 position = target.position;
+
+        if (followHeadInVR && followRig != null && followRig.Camera != null)
+        {
+            Vector3 head = followRig.Camera.transform.position;
+            position.x = head.x;
+            position.z = head.z;
+        }
+
+        return position;
+    }
+
+    /// <summary>Version-aware XR Origin lookup (Unity 2023+/6 gets FindAnyObjectByType).</summary>
+    private static Unity.XR.CoreUtils.XROrigin FindXROriginInScene()
+    {
+#if UNITY_2023_1_OR_NEWER
+        return FindAnyObjectByType<Unity.XR.CoreUtils.XROrigin>();
+#else
+        return FindObjectOfType<Unity.XR.CoreUtils.XROrigin>();
+#endif
     }
 
     private void RefreshCamera()

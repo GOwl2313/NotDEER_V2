@@ -280,7 +280,9 @@ public class GamePauseManager : MonoBehaviour
 #if ENABLE_INPUT_SYSTEM
         // KeyCodeBridge maps the Inspector KeyCode to the new Input System key,
         // so the Pause Key field genuinely works on both input backends.
-        return KeyCodeBridge.WasKeyPressedThisFrame(Keyboard.current, pauseKey);
+        // VR: the left controller's Menu button pauses / resumes (VRInputBridge).
+        return VRInputBridge.PausePressedThisFrame ||
+               KeyCodeBridge.WasKeyPressedThisFrame(Keyboard.current, pauseKey);
 #else
         return Input.GetKeyDown(pauseKey);
 #endif

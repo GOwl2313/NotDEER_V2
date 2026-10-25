@@ -369,7 +369,9 @@ public class CassetteTapePlayer : MonoBehaviour
     private bool SkipPressedThisFrame()
     {
 #if ENABLE_INPUT_SYSTEM
-        return KeyCodeBridge.WasKeyPressedThisFrame(Keyboard.current, skipKey);
+        // VR: Secondary button (B / Y) skips the tape too (VRInputBridge).
+        return VRInputBridge.SkipPressedThisFrame ||
+               KeyCodeBridge.WasKeyPressedThisFrame(Keyboard.current, skipKey);
 #else
         return Input.GetKeyDown(skipKey);
 #endif

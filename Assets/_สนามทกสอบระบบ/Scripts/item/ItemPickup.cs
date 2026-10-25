@@ -343,10 +343,12 @@ public class ItemPickup : MonoBehaviour
     private bool ReadInteractKeyPressed()
     {
 #if ENABLE_INPUT_SYSTEM
-        return KeyCodeBridge.WasKeyPressedThisFrame(
-            Keyboard.current,
-            interactKey
-        );
+        // VR: the controller Trigger counts as the same press (VRInputBridge).
+        return VRInputBridge.InteractPressedThisFrame ||
+               KeyCodeBridge.WasKeyPressedThisFrame(
+                   Keyboard.current,
+                   interactKey
+               );
 #else
         return Input.GetKeyDown(interactKey);
 #endif

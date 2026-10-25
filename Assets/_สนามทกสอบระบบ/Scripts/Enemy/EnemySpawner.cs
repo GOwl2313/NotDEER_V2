@@ -63,6 +63,15 @@ using UnityEngine;
 ///     was recreated), the reference is re-resolved automatically every 0.5 s
 ///     instead of silently never spawning again.
 ///
+/// v1.6 – FOLLOWS THE PLAYER (VR):
+///   • The spawner object now travels with the player every frame (Follow Player),
+///     so the object and its ring gizmo are always where the player is.
+///   • In VR the ring is centred on the HEADSET's horizontal position instead of the
+///     XR Origin's floor point (Center On Head In VR), so room-scale walking moves
+///     the ring too. Non-VR scenes behave exactly as before.
+///   • The camera reference self-heals before every spawn attempt, so the
+///     out-of-sight check keeps working if the XR camera appears late.
+///
 /// Every tuning value is exposed in the Inspector. Use the component's
 /// context menu (gear icon) to "Spawn Enemy Now" while testing.
 /// </summary>
@@ -86,6 +95,14 @@ public class EnemySpawner : MonoBehaviour
 
     [Tooltip("Camera used for the visibility check. Auto-found via Camera.main if left empty.")]
     [SerializeField] private Camera playerCamera;
+
+    [Tooltip("v1.6: keep this spawner object glued to the player every frame, so the " +
+             "spawner (and its Scene-view ring gizmo) always travels with the player.")]
+    [SerializeField] private bool followPlayer = true;
+
+    [Tooltip("v1.6: in VR, centre the spawn ring on the HEADSET (room-scale walking) " +
+             "instead of the XR Origin's floor point. Ignored in non-VR scenes.")]
+    [SerializeField] private bool centerOnHeadInVR = true;
 
     [Header("Spawn Ring (around the player)")]
 
@@ -204,6 +221,10 @@ public class EnemySpawner : MonoBehaviour
     // v1.5: self-heal cadence for a lost player reference (seconds).
     private const float PlayerRescanInterval = 0.5f;
     private float playerRescanTimer;
+
+    // v1.6: cached "is the player an XR Origin?" answer for the current player reference.
+    private Transform centerCheckedFor;
+    private bool centerOnHead;
 
     /// <summary>Number of enemies currently alive (destroyed ones are pruned automatically).</summary>
     public int AliveCount
@@ -427,6 +448,19 @@ public class EnemySpawner : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// v1.6 – the spawner object travels with the player. Runs in LateUpdate so
+    /// it uses the final pose of the rig / headset for this frame, and it keeps
+    /// running while paused or inside a Safe Zone (moving the transform spawns
+    /// nothing — it only keeps the ring and the fallback centre on the player).
+    /// </summary>
+    private void LateUpdate()
+    {
+        if (!followPlayer || player == null) return;
+
+        transform.position = GetPlayerCenter();
+    }
+
     /// <summary>Clamps Inspector values so the spawner can never receive nonsense input.</summary>
     private void OnValidate()
     {
@@ -458,6 +492,10 @@ public class EnemySpawner : MonoBehaviour
 
         if (enemyPrefab == null || player == null) return;
         if (maxAliveEnemies > 0 && aliveEnemies.Count >= maxAliveEnemies) return;
+
+        // v1.6: the XR camera can be created after Awake (rig spawned / recreated) —
+        // pick it up here so the out-of-sight check never silently turns itself off.
+        if (playerCamera == null) playerCamera = Camera.main;
 
         Vector3? safeSpot = FindSafeSpawnPosition();
 
@@ -732,6 +770,34 @@ public class EnemySpawner : MonoBehaviour
         flashlightRespawnCountdown = Random.Range(min, max);
     }
 
+    /// <summary>
+    /// v1.6 – the point the spawn ring is centred on. Non-VR: the player's position
+    /// (unchanged behaviour). VR: the headset's horizontal position at the rig's floor
+    /// height, so walking around inside the play area moves the ring with the head.
+    /// </summary>
+    private Vector3 GetPlayerCenter()
+    {
+        if (player == null) return transform.position;
+
+        if (centerCheckedFor != player)
+        {
+            centerCheckedFor = player;
+            centerOnHead = centerOnHeadInVR &&
+                           player.GetComponent<Unity.XR.CoreUtils.XROrigin>() != null;
+        }
+
+        Vector3 center = player.position;
+
+        if (centerOnHead && playerCamera != null)
+        {
+            Vector3 head = playerCamera.transform.position;
+            center.x = head.x;
+            center.z = head.z;
+        }
+
+        return center;
+    }
+
     /// <summary>Random point on the ring between Min and Max Spawn Distance around the player.</summary>
     private Vector3 GetRandomRingPosition()
     {
@@ -742,7 +808,7 @@ public class EnemySpawner : MonoBehaviour
         float radius = Mathf.Sqrt(Random.Range(minSq, maxSq));
         float angle = Random.Range(0f, Mathf.PI * 2f);
 
-        Vector3 center = player != null ? player.position : transform.position;
+        Vector3 center = GetPlayerCenter();
 
         return new Vector3(
             center.x + Mathf.Cos(angle) * radius,
@@ -858,13 +924,14 @@ public class EnemySpawner : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
-        Transform center = player != null ? player : transform;
+        Vector3 center = Application.isPlaying ? GetPlayerCenter()
+                                               : (player != null ? player.position : transform.position);
 
         Gizmos.color = Color.cyan;
-        DrawRing(center.position, minSpawnDistance);
+        DrawRing(center, minSpawnDistance);
 
         Gizmos.color = Color.yellow;
-        DrawRing(center.position, maxSpawnDistance);
+        DrawRing(center, maxSpawnDistance);
     }
 
     private static void DrawRing(Vector3 center, float radius)

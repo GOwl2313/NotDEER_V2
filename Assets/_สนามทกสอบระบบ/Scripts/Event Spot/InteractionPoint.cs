@@ -1073,7 +1073,9 @@ public class InteractionPoint : MonoBehaviour
 #if ENABLE_INPUT_SYSTEM
         // KeyCodeBridge maps the Inspector KeyCode to the new Input System key,
         // so the Interact Key field genuinely works on both input backends.
-        return KeyCodeBridge.WasKeyPressedThisFrame(Keyboard.current, interactKey);
+        // VR: the controller Trigger counts as the same press (VRInputBridge).
+        return VRInputBridge.InteractPressedThisFrame ||
+               KeyCodeBridge.WasKeyPressedThisFrame(Keyboard.current, interactKey);
 #else
         return Input.GetKeyDown(interactKey);
 #endif
