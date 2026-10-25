@@ -55,6 +55,11 @@ public enum EnemyState
 /// keeps its natural material colors in every state (and its renderers stay
 /// eligible for SRP batching). NO state-machine, timing, physics or
 /// animation-sync change of any kind.
+///
+/// v2.7 – VR TARGET SUPPORT (XR Origin first): when no player is assigned in
+/// the Inspector, the chase target is auto-resolved VR-first — an XR Origin
+/// (XR Rig) in the scene is preferred (the rig that actually moves in VR),
+/// then the classic 'Player' tag. Non-VR scenes behave exactly as before.
 /// </summary>
 [DisallowMultipleComponent]
 public class EnemyController : MonoBehaviour
@@ -65,7 +70,8 @@ public class EnemyController : MonoBehaviour
 
     [Header("References")]
 
-    [Tooltip("The transform this enemy chases. Auto-found via the 'Player' tag if left empty.")]
+    [Tooltip("The transform this enemy chases. Auto-found when left empty: prefers the " +
+             "XR Origin (XR Rig) in VR scenes, then falls back to the 'Player' tag.")]
     [SerializeField] private Transform player;
 
     [Tooltip("The FlashlightDetector that tells this enemy when the player's light is on it. " +
@@ -228,8 +234,7 @@ public class EnemyController : MonoBehaviour
 
         if (player == null)
         {
-            GameObject found = GameObject.FindGameObjectWithTag("Player");
-            if (found != null) player = found.transform;
+            player = ResolveChaseTarget();
         }
 
         // v2.5: Animator lookup + parameter cache
@@ -241,8 +246,15 @@ public class EnemyController : MonoBehaviour
     {
         if (player == null)
         {
+            // Second chance — the XR rig may have become visible to
+            // FindAnyObjectByType after the first Awake pass.
+            player = ResolveChaseTarget();
+        }
+
+        if (player == null)
+        {
             Debug.LogError("[EnemyController] No player assigned on '" + name +
-                           "' and no GameObject tagged 'Player' exists in the scene. Disabling enemy.", this);
+                           "' and no XR Origin or GameObject tagged 'Player' exists in the scene. Disabling enemy.", this);
             enabled = false;
             return;
         }
@@ -574,6 +586,39 @@ public class EnemyController : MonoBehaviour
     // Helpers
     // ------------------------------------------------------------------ //
 
+    /// <summary>
+    /// v2.7 – resolves the chase target, VR-first:
+    ///   1. The explicit Inspector reference (always wins over everything).
+    ///   2. An XR Origin (XR Rig) in the scene — in VR this is the rig that
+    ///      actually moves with the player (VR scenes often still contain an
+    ///      old non-VR player, so the 'Player' tag alone is ambiguous there).
+    ///   3. The classic 'Player' tag (non-VR scenes keep working unchanged).
+    /// </summary>
+    private Transform ResolveChaseTarget()
+    {
+        if (player != null) return player;
+
+        Unity.XR.CoreUtils.XROrigin xrOrigin = FindXROriginInScene();
+        if (xrOrigin != null) return xrOrigin.transform;
+
+        GameObject found = GameObject.FindGameObjectWithTag("Player");
+        return found != null ? found.transform : null;
+    }
+
+    /// <summary>
+    /// Version-aware XR Origin lookup — the same pattern the stuck detector's
+    /// spawner lookup uses: Unity 2023+ (including Unity 6) gets
+    /// FindAnyObjectByType, older Unity gets FindObjectOfType.
+    /// </summary>
+    private static Unity.XR.CoreUtils.XROrigin FindXROriginInScene()
+    {
+#if UNITY_2023_1_OR_NEWER
+        return FindAnyObjectByType<Unity.XR.CoreUtils.XROrigin>();
+#else
+        return FindObjectOfType<Unity.XR.CoreUtils.XROrigin>();
+#endif
+    }
+
     /// <summary>Caches parameter hashes and checks which Bool parameters exist in the Animator.</summary>
     private void CacheAnimatorParams()
     {
@@ -647,8 +692,19 @@ public class EnemyController : MonoBehaviour
         Transform target = player;
         if (target == null)
         {
-            GameObject found = GameObject.FindGameObjectWithTag("Player");
-            if (found != null) target = found.transform;
+            // v2.7 – same XR-first resolution as at runtime (editor gizmo).
+#if UNITY_2023_1_OR_NEWER
+            Unity.XR.CoreUtils.XROrigin xrOrigin = FindAnyObjectByType<Unity.XR.CoreUtils.XROrigin>();
+#else
+            Unity.XR.CoreUtils.XROrigin xrOrigin = FindObjectOfType<Unity.XR.CoreUtils.XROrigin>();
+#endif
+            if (xrOrigin != null) target = xrOrigin.transform;
+
+            if (target == null)
+            {
+                GameObject found = GameObject.FindGameObjectWithTag("Player");
+                if (found != null) target = found.transform;
+            }
         }
 
         if (target != null)

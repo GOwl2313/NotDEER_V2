@@ -52,6 +52,17 @@ using UnityEngine;
 ///   • StuckRespawnCountdown property: seconds until the queued replacement
 ///     spawns (-1 when idle), handy for a HUD like the flashlight one.
 ///
+/// v1.5 – VR TARGET SUPPORT (XR Origin first):
+///   • The spawn ring is centred on the player's XR Origin (XR Rig) when one
+///     exists in the scene — the rig that actually moves in VR — instead of
+///     whatever object happens to carry the 'Player' tag (VR scenes often
+///     still contain an old non-VR player, so the tag alone is ambiguous).
+///   • Resolution order: explicit Inspector reference → XR Origin → 'Player'
+///     tag. Non-VR scenes without an XR Origin behave exactly as before.
+///   • SELF-HEAL: if the resolved player is destroyed mid-game (e.g. the rig
+///     was recreated), the reference is re-resolved automatically every 0.5 s
+///     instead of silently never spawning again.
+///
 /// Every tuning value is exposed in the Inspector. Use the component's
 /// context menu (gear icon) to "Spawn Enemy Now" while testing.
 /// </summary>
@@ -69,7 +80,8 @@ public class EnemySpawner : MonoBehaviour
 
     [Header("Player & Camera")]
 
-    [Tooltip("Player transform to spawn around. Auto-found via the 'Player' tag if left empty.")]
+    [Tooltip("Player transform to spawn around. Auto-found when left empty: prefers the " +
+             "XR Origin (XR Rig) in VR scenes, then falls back to the 'Player' tag.")]
     [SerializeField] private Transform player;
 
     [Tooltip("Camera used for the visibility check. Auto-found via Camera.main if left empty.")]
@@ -189,6 +201,10 @@ public class EnemySpawner : MonoBehaviour
     private readonly Queue<float> stuckRespawnDelays = new Queue<float>();
     private float stuckRespawnCountdown = -1f;   // < 0 = idle
 
+    // v1.5: self-heal cadence for a lost player reference (seconds).
+    private const float PlayerRescanInterval = 0.5f;
+    private float playerRescanTimer;
+
     /// <summary>Number of enemies currently alive (destroyed ones are pruned automatically).</summary>
     public int AliveCount
     {
@@ -252,8 +268,7 @@ public class EnemySpawner : MonoBehaviour
     {
         if (player == null)
         {
-            GameObject found = GameObject.FindGameObjectWithTag("Player");
-            if (found != null) player = found.transform;
+            player = ResolvePlayerTransform();
         }
 
         if (playerCamera == null) playerCamera = Camera.main;
@@ -270,7 +285,15 @@ public class EnemySpawner : MonoBehaviour
 
         if (player == null)
         {
-            Debug.LogError("[EnemySpawner] No Player assigned and no GameObject tagged 'Player' found. Disabling spawner.", this);
+            // Second chance — the XR rig may have become visible to
+            // FindAnyObjectByType after the first Awake pass.
+            player = ResolvePlayerTransform();
+        }
+
+        if (player == null)
+        {
+            Debug.LogError("[EnemySpawner] No Player assigned and no XR Origin or GameObject tagged " +
+                           "'Player' found. Disabling spawner.", this);
             enabled = false;
             return;
         }
@@ -293,6 +316,22 @@ public class EnemySpawner : MonoBehaviour
 
     private void Update()
     {
+        // v1.5: self-heal the target reference — if the resolved player was
+        // destroyed mid-game (rig recreated, baked reference to a dead object
+        // etc.) the spawner used to silently never spawn again. Re-resolve on
+        // a short cadence instead.
+        if (player == null)
+        {
+            playerRescanTimer -= Time.deltaTime;
+            if (playerRescanTimer <= 0f)
+            {
+                player = ResolvePlayerTransform();
+                playerRescanTimer = PlayerRescanInterval;
+            }
+
+            if (player == null) return;
+        }
+
         // v1.2: fully frozen while the pause menu is open (interval, respawn
         // cooldowns — nothing ticks while the game is paused).
         if (GamePauseManager.IsPaused) return;
@@ -500,6 +539,44 @@ public class EnemySpawner : MonoBehaviour
         {
             stuckRespawnDelays.Enqueue(delay);      // further entries wait their turn
         }
+    }
+
+    // ------------------------------------------------------------------ //
+    // v1.5 — Target resolution (XR Origin first)
+    // ------------------------------------------------------------------ //
+
+    /// <summary>
+    /// v1.5 – resolves the spawn-centre target, VR-first:
+    ///   1. The explicit Inspector reference (always wins over everything).
+    ///   2. An XR Origin (XR Rig) in the scene — in VR this is the rig that
+    ///      actually moves with the player. VR scenes often still contain an
+    ///      old non-VR player, so the 'Player' tag alone is ambiguous there.
+    ///   3. The classic 'Player' tag (non-VR scenes keep working unchanged).
+    /// </summary>
+    private Transform ResolvePlayerTransform()
+    {
+        if (player != null) return player;
+
+        Unity.XR.CoreUtils.XROrigin xrOrigin = FindXROriginInScene();
+        if (xrOrigin != null) return xrOrigin.transform;
+
+        GameObject found = GameObject.FindGameObjectWithTag("Player");
+        return found != null ? found.transform : null;
+    }
+
+    /// <summary>
+    /// Version-aware XR Origin lookup — the same pattern the v1.4 spawner
+    /// lookup uses: Unity 2023+ (including Unity 6) gets FindAnyObjectByType,
+    /// older Unity gets FindObjectOfType. No version prints a deprecation
+    /// warning for the branch it actually compiles.
+    /// </summary>
+    private static Unity.XR.CoreUtils.XROrigin FindXROriginInScene()
+    {
+#if UNITY_2023_1_OR_NEWER
+        return FindAnyObjectByType<Unity.XR.CoreUtils.XROrigin>();
+#else
+        return FindObjectOfType<Unity.XR.CoreUtils.XROrigin>();
+#endif
     }
 
     // ------------------------------------------------------------------ //

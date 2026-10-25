@@ -1150,7 +1150,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6d481315e14714647b17bae1e1a49bcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyController
-  player: {fileID: 7114426969352601263, guid: 4615f4cd0019d74469f6548efd0684a9, type: 3}
+  player: {fileID: 0}
   flashlightDetector: {fileID: 0}
   moveSpeed: 20
   stopDistance: 0.5
@@ -1250,7 +1250,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStuckDetector
   controller: {fileID: 3388223554004497840, guid: b33ad05c1919e7e4890dbcd9e04a64e2, type: 3}
-  player: {fileID: 505471397490552967, guid: f52d8fe9a96dbb6468aef2dd34c45525, type: 3}
+  player: {fileID: 0}
   spawner: {fileID: 0}
   stuckSpeedThreshold: 1
   stuckTimeLimit: 10

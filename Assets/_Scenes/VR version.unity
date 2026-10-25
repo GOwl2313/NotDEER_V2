@@ -10623,7 +10623,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemySpawner
   enemyPrefab: {fileID: 3696493194269880119, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
-  player: {fileID: 7114426971200358694}
+  player: {fileID: 233566662}
   playerCamera: {fileID: 233566663}
   minSpawnDistance: 20
   maxSpawnDistance: 30

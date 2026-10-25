@@ -42,10 +42,16 @@ using UnityEngine;
 ///
 /// SETUP: add this component to the enemy prefab root, next to
 /// EnemyController. It finds the EnemyController (same GameObject), the
-/// player (tag 'Player') and the scene's EnemySpawner automatically — or
-/// pin any of them manually in the Inspector. Requires EnemySpawner v1.4+
-/// (its QueueStuckRespawn API); with an older spawner or none in the scene
-/// this watchdog logs a warning and disables itself instead of misfiring.
+/// player (XR Origin first, then the tag 'Player') and the scene's
+/// EnemySpawner automatically — or pin any of them manually in the
+/// Inspector. Requires EnemySpawner v1.4+ (its QueueStuckRespawn API); with
+/// an older spawner or none in the scene this watchdog logs a warning and
+/// disables itself instead of misfiring.
+///
+/// v1.1 – VR TARGET SUPPORT (XR Origin first): the out-of-range check now
+/// measures distance to the player's XR Origin (XR Rig) when one exists in
+/// the scene — the rig that actually moves in VR — instead of whatever old
+/// object happens to carry the 'Player' tag. Non-VR scenes are unchanged.
 ///
 /// Every tuning value is exposed in the Inspector.
 /// </summary>
@@ -61,7 +67,8 @@ public class EnemyStuckDetector : MonoBehaviour
     [Tooltip("The enemy brain this watchdog monitors. Auto-found on this GameObject when left empty.")]
     [SerializeField] private EnemyController controller;
 
-    [Tooltip("The player the enemy chases — used for the out-of-range check. Auto-found via the 'Player' tag when left empty.")]
+    [Tooltip("The player the enemy chases — used for the out-of-range check. Auto-found when " +
+             "left empty: prefers the XR Origin (XR Rig) in VR scenes, then the 'Player' tag.")]
     [SerializeField] private Transform player;
 
     [Tooltip("The spawner that owns respawning. Auto-found in the scene when left empty (pin it manually " +
@@ -159,8 +166,7 @@ public class EnemyStuckDetector : MonoBehaviour
 
         if (player == null)
         {
-            GameObject found = GameObject.FindGameObjectWithTag("Player");
-            if (found != null) player = found.transform;
+            player = ResolvePlayerReference();
         }
 
         if (spawner == null) spawner = FindSpawnerInScene();
@@ -191,9 +197,16 @@ public class EnemyStuckDetector : MonoBehaviour
 
         if (player == null)
         {
-            Debug.LogWarning("[EnemyStuckDetector] No player found (tag 'Player') and none assigned — " +
-                             "the out-of-range check needs a player. This watchdog disables itself. " +
-                             "(EnemyController refuses to run without a player too.)", this);
+            // Second chance — the XR rig may have become visible to
+            // FindAnyObjectByType after the first Awake pass.
+            player = ResolvePlayerReference();
+        }
+
+        if (player == null)
+        {
+            Debug.LogWarning("[EnemyStuckDetector] No player found (no XR Origin, nothing tagged 'Player', " +
+                             "none assigned) — the out-of-range check needs a player. This watchdog " +
+                             "disables itself. (EnemyController refuses to run without a player too.)", this);
             enabled = false;
         }
     }
@@ -360,6 +373,29 @@ public class EnemyStuckDetector : MonoBehaviour
     // ------------------------------------------------------------------ //
 
     /// <summary>
+    /// v1.1 – resolves the out-of-range measurement target, VR-first:
+    ///   1. The explicit Inspector reference (always wins over everything).
+    ///   2. An XR Origin (XR Rig) in the scene — the rig that actually moves
+    ///      with the player in VR (the 'Player' tag alone is ambiguous there,
+    ///      old non-VR players often keep the tag as well).
+    ///   3. The classic 'Player' tag (non-VR scenes keep working unchanged).
+    /// </summary>
+    private Transform ResolvePlayerReference()
+    {
+        if (player != null) return player;
+
+#if UNITY_2023_1_OR_NEWER
+        Unity.XR.CoreUtils.XROrigin xrOrigin = FindAnyObjectByType<Unity.XR.CoreUtils.XROrigin>();
+#else
+        Unity.XR.CoreUtils.XROrigin xrOrigin = FindObjectOfType<Unity.XR.CoreUtils.XROrigin>();
+#endif
+        if (xrOrigin != null) return xrOrigin.transform;
+
+        GameObject found = GameObject.FindGameObjectWithTag("Player");
+        return found != null ? found.transform : null;
+    }
+
+    /// <summary>
     /// Version-aware spawner lookup — the same pattern SafeZone v1.1 uses.
     /// Unity 2023+ (including Unity 6) gets the current FindAnyObjectByType,
     /// which has never been deprecated; older Unity gets FindObjectOfType,
@@ -384,8 +420,19 @@ public class EnemyStuckDetector : MonoBehaviour
         Transform target = player;
         if (target == null)
         {
-            GameObject found = GameObject.FindGameObjectWithTag("Player");
-            if (found != null) target = found.transform;
+            // v1.1 – same XR-first resolution as at runtime (editor gizmo).
+#if UNITY_2023_1_OR_NEWER
+            Unity.XR.CoreUtils.XROrigin xrOrigin = FindAnyObjectByType<Unity.XR.CoreUtils.XROrigin>();
+#else
+            Unity.XR.CoreUtils.XROrigin xrOrigin = FindObjectOfType<Unity.XR.CoreUtils.XROrigin>();
+#endif
+            if (xrOrigin != null) target = xrOrigin.transform;
+
+            if (target == null)
+            {
+                GameObject found = GameObject.FindGameObjectWithTag("Player");
+                if (found != null) target = found.transform;
+            }
         }
         if (target == null) return;
 
