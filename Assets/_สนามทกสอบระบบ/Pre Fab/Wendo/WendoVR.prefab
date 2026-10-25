@@ -1396,7 +1396,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04ab5fdb640f751459ec9c1fdc097214, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyStageAudio
-  enemyController: {fileID: 3050660182331571823}
+  enemyController: {fileID: 3050660182331571823, guid: c5ac42256db11c74e86971ed8147afae, type: 3}
   idleStage:
     groups:
     - name: Group
@@ -1404,9 +1404,9 @@ MonoBehaviour:
       startAfterPreviousSeconds: 0
       delayAfterPreviousEndSeconds: 0
       sounds:
-      - clip: {fileID: 8300000, guid: a89a16f7f39c4a34c8035c933e594fe5, type: 3}
+      - clip: {fileID: 8300000, guid: c069f4a930f7342429e122232329d964, type: 3}
         volume: 1
-        loopMode: 0
+        loopMode: 2
         loopGroupSpan: 1
   attackStage:
     groups:
@@ -1415,7 +1415,7 @@ MonoBehaviour:
       startAfterPreviousSeconds: 0
       delayAfterPreviousEndSeconds: 0
       sounds:
-      - clip: {fileID: 0}
+      - clip: {fileID: 8300000, guid: c77269bd8a2781b498183137b9eb4450, type: 3}
         volume: 1
         loopMode: 0
         loopGroupSpan: 1
@@ -1426,7 +1426,7 @@ MonoBehaviour:
       startAfterPreviousSeconds: 0
       delayAfterPreviousEndSeconds: 0
       sounds:
-      - clip: {fileID: 8300000, guid: 0d3e15e40e9593040bfc67ed65a45fac, type: 3}
+      - clip: {fileID: 8300000, guid: a180bd88df4f75d4c8dd19ded4041474, type: 3}
         volume: 1
         loopMode: 2
         loopGroupSpan: 1
@@ -1437,7 +1437,7 @@ MonoBehaviour:
       startAfterPreviousSeconds: 0
       delayAfterPreviousEndSeconds: 0
       sounds:
-      - clip: {fileID: 0}
+      - clip: {fileID: 8300000, guid: 2f9c9bb849aab3540b53c11aaeda375e, type: 3}
         volume: 1
         loopMode: 0
         loopGroupSpan: 1
