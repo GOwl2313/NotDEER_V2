@@ -96,6 +96,16 @@ public class FlashlightBatteryWorldHUD : MonoBehaviour
              "Default OFF: the plate is a physical panel stuck to the top of the handle.")]
     [SerializeField] private bool billboard = false;
 
+    [Header("Edit-Mode Preview (no Play required)")]
+    [Tooltip("ON = build and show the plate in the EDITOR (Scene view) without pressing Play. The preview " +
+             "is transient: never saved into the scene (HideFlags.DontSave), removed when this is switched " +
+             "off, the component is deleted, or the scene is closed.")]
+    [SerializeField] private bool editModePreview = false;
+
+    [Tooltip("Cosmetic battery level shown by the preview only (0 = empty, 1 = full). The real battery " +
+             "only runs in Play mode.")]
+    [SerializeField, Range(0f, 1f)] private float editModePreviewLevel = 1f;
+
     [Header("White Frame (applies live)")]
     [Tooltip("Thickness of the WHITE FRAME drawn around the green bar (metres).")]
     [SerializeField] private float frameThickness = 0.0035f;
@@ -162,6 +172,7 @@ public class FlashlightBatteryWorldHUD : MonoBehaviour
     private float innerWidth;          // usable width inside the frame
     private float innerHeight;         // usable height inside the frame
     private bool everBound;            // we had a controller at least once
+    private bool previewOwned;         // WE created the current panel in EDIT mode (safe to delete)
     private float searchTimer;         // retry cadence while no flashlight is found yet
     private float unboundTime;         // how long we have been waiting for a flashlight
     private Transform billboardCamera; // the headset / game camera the plate faces
@@ -176,11 +187,13 @@ public class FlashlightBatteryWorldHUD : MonoBehaviour
 
     private void Awake()
     {
-        // The plate exists ONLY at runtime (nothing is saved into the scene
-        // by accident while editing). Edit-mode OnValidate still clamps values.
+        // Play mode: make sure the plate exists (and if an edit-mode preview
+        // panel survived into play, absorb it as a normal object). Edit-mode
+        // OnValidate still clamps values; the preview is built by Update.
         if (!Application.isPlaying) return;
 
         EnsurePanel();
+        if (panelRoot != null) ClearPreviewHideFlags(panelRoot);
     }
 
     private void Start()
@@ -192,7 +205,11 @@ public class FlashlightBatteryWorldHUD : MonoBehaviour
 
     private void Update()
     {
-        if (!Application.isPlaying) return;
+        if (!Application.isPlaying)
+        {
+            TickEditModePreview();
+            return;
+        }
 
         // ---- Self-heal: if the plate or a child was destroyed at runtime,
         //      rebuild it from the Inspector values. ----
@@ -308,6 +325,17 @@ public class FlashlightBatteryWorldHUD : MonoBehaviour
         {
             // No camera yet (or none at all): fall back to the authored rotation.
             panelRoot.localRotation = Quaternion.Euler(localEuler);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        // Edit mode only: a plate WE built as a preview is removed with us.
+        // (Saved/user-made plates are never touched — previewOwned is false.)
+        if (!Application.isPlaying && previewOwned && panelRoot != null)
+        {
+            DestroyImmediate(panelRoot.gameObject);
+            previewOwned = false;
         }
     }
 
@@ -441,6 +469,8 @@ public class FlashlightBatteryWorldHUD : MonoBehaviour
 
             // NOTE: deliberately NO CanvasScaler (world space needs none) and
             // NO GraphicRaycaster (pure display — VR rays pass through).
+
+            if (!Application.isPlaying) previewOwned = true;   // edit-mode preview: ours to clean up
         }
 
         // ---- PLATE (dark translucent backing) ----
@@ -603,6 +633,80 @@ public class FlashlightBatteryWorldHUD : MonoBehaviour
         }
 
         return colour;
+    }
+
+    // ------------------------------------------------------------------ //
+    // Edit-mode preview — the plate in the Scene view without pressing Play.
+    // Never saved into the scene (HideFlags.DontSave). See the Inspector
+    // "Edit-Mode Preview" toggle.
+    // ------------------------------------------------------------------ //
+
+    private void TickEditModePreview()
+    {
+        if (Application.isPlaying) return;
+
+        if (editModePreview)
+        {
+            bool malformed = panelRoot == null || barRoot == null || plateImage == null || frameImage == null ||
+                             backgroundImage == null || fillImage == null || fillRect == null;
+            if (malformed) EnsurePanel();
+            if (panelRoot == null) return;
+
+            ApplyPreviewHideFlags(panelRoot);
+
+            // lock the authored pose (billboard stays OFF in the editor)
+            if (panelRoot.localPosition != localOffset) panelRoot.localPosition = localOffset;
+            if (panelRoot.localScale != Vector3.one) panelRoot.localScale = Vector3.one;
+            if (panelRoot.localRotation != Quaternion.Euler(localEuler))
+                panelRoot.localRotation = Quaternion.Euler(localEuler);
+
+            SyncPanelLayout();
+
+            // cosmetic battery level for the preview (no battery runs in edit mode)
+            float shown = Mathf.Clamp01(editModePreviewLevel);
+            displayedFraction = shown;
+            Vector2 fillSize = new Vector2(innerWidth * shown, innerHeight);
+            if (fillRect.sizeDelta != fillSize) fillRect.sizeDelta = fillSize;
+            Color barColour = ComputeBarColour(shown);
+            if (fillImage.color != barColour) fillImage.color = barColour;
+
+            if (!panelRoot.gameObject.activeSelf) panelRoot.gameObject.SetActive(true);
+        }
+        else if (previewOwned && panelRoot != null)
+        {
+            DestroyPreview();
+        }
+    }
+
+    private void DestroyPreview()
+    {
+        if (panelRoot != null) DestroyImmediate(panelRoot.gameObject);
+        // null every cached reference so the next tick rebuilds cleanly
+        panelRoot = null;
+        panelCanvas = null;
+        barRoot = null;
+        fillRect = null;
+        plateImage = null;
+        frameImage = null;
+        backgroundImage = null;
+        fillImage = null;
+        previewOwned = false;
+    }
+
+    private static void ApplyPreviewHideFlags(Transform root)
+    {
+        if (root == null) return;
+        root.hideFlags = HideFlags.DontSave;
+        for (int i = 0; i < root.childCount; i++)
+            ApplyPreviewHideFlags(root.GetChild(i));
+    }
+
+    private static void ClearPreviewHideFlags(Transform root)
+    {
+        if (root == null) return;
+        root.hideFlags = HideFlags.None;
+        for (int i = 0; i < root.childCount; i++)
+            ClearPreviewHideFlags(root.GetChild(i));
     }
 
     // ------------------------------------------------------------------ //
