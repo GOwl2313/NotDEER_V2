@@ -726,6 +726,9 @@ public class EnemySpawner : MonoBehaviour
         GameObject enemy = Instantiate(enemyPrefab, position, Quaternion.identity);
         aliveEnemies.Add(enemy);
 
+        Debug.Log("[EnemySpawner] Enemy spawned at " + position + " — " +
+                  Vector3.Distance(GetPlayerCenter(), position).ToString("F1") + " m from the player.", this);
+
         EnemyController controller = enemy.GetComponent<EnemyController>();
         if (controller != null)
         {

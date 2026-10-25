@@ -60,6 +60,10 @@ public enum EnemyState
 /// the Inspector, the chase target is auto-resolved VR-first — an XR Origin
 /// (XR Rig) in the scene is preferred (the rig that actually moves in VR),
 /// then the classic 'Player' tag. Non-VR scenes behave exactly as before.
+///
+/// v2.8 – VR CHASE: the enemy walks toward the HEADSET's horizontal position
+/// (room-scale) instead of the XR Origin's floor point, and re-resolves its
+/// target on its own if the player reference is lost mid-game.
 /// </summary>
 [DisallowMultipleComponent]
 public class EnemyController : MonoBehaviour
@@ -211,6 +215,12 @@ public class EnemyController : MonoBehaviour
     private Rigidbody rb;
     private bool usesPhysics;
 
+    // v2.8: VR chase point (headset) + target self-heal.
+    private Unity.XR.CoreUtils.XROrigin chaseRig;
+    private Transform chaseRigCheckedFor;
+    private float targetRescanTimer;
+    private const float TargetRescanInterval = 0.5f;
+
     // ------------------------------------------------------------------ //
     // Unity messages
     // ------------------------------------------------------------------ //
@@ -280,6 +290,21 @@ public class EnemyController : MonoBehaviour
 
     private void Update()
     {
+        // v2.8: SELF-HEAL — if the chase target was destroyed mid-game (XR rig
+        // recreated, scene object swapped) look for it again instead of standing
+        // still forever. Cheap: one lookup every 0.5 s, only while it is missing.
+        if (player == null)
+        {
+            targetRescanTimer -= Time.deltaTime;
+            if (targetRescanTimer <= 0f)
+            {
+                targetRescanTimer = TargetRescanInterval;
+                player = ResolveChaseTarget();
+            }
+
+            if (player == null) return;
+        }
+
         // The flashlight or a SafeZone can freeze the enemy out of any of its
         // normal states.
         if (CurrentState == EnemyState.Waiting ||
@@ -329,7 +354,7 @@ public class EnemyController : MonoBehaviour
         // Rigidbody movement must be applied in the physics step.
         if (CurrentState != EnemyState.Moving) return;
 
-        Vector3 toPlayer = Flatten(player.position - transform.position);
+        Vector3 toPlayer = Flatten(GetChasePoint() - transform.position);
         if (toPlayer.magnitude <= stopDistance) return; // transition handled in Update
 
         SetPlanarVelocity(rb, toPlayer.normalized * moveSpeed);
@@ -428,7 +453,7 @@ public class EnemyController : MonoBehaviour
     {
         if (player == null) return;
 
-        Vector3 toPlayer = Flatten(player.position - transform.position);
+        Vector3 toPlayer = Flatten(GetChasePoint() - transform.position);
 
         if (toPlayer.magnitude <= stopDistance)
         {
@@ -451,7 +476,7 @@ public class EnemyController : MonoBehaviour
     {
         if (player == null) return;
 
-        Vector3 toPlayer = Flatten(player.position - transform.position);
+        Vector3 toPlayer = Flatten(GetChasePoint() - transform.position);
         if (toPlayer.magnitude > resumeDistance)
         {
             EnterState(EnemyState.Moving);
@@ -603,6 +628,32 @@ public class EnemyController : MonoBehaviour
 
         GameObject found = GameObject.FindGameObjectWithTag("Player");
         return found != null ? found.transform : null;
+    }
+
+    /// <summary>
+    /// v2.8 – the world point the enemy walks toward. Non-VR: the player's position
+    /// (unchanged). VR: the headset's horizontal position, so the enemy chases the
+    /// person inside the play area, not the rig's floor origin they may have walked
+    /// away from. Only the horizontal part matters (movement is flattened anyway).
+    /// </summary>
+    private Vector3 GetChasePoint()
+    {
+        if (chaseRigCheckedFor != player)
+        {
+            chaseRigCheckedFor = player;
+            chaseRig = player != null ? player.GetComponent<Unity.XR.CoreUtils.XROrigin>() : null;
+        }
+
+        Vector3 point = player.position;
+
+        if (chaseRig != null && chaseRig.Camera != null)
+        {
+            Vector3 head = chaseRig.Camera.transform.position;
+            point.x = head.x;
+            point.z = head.z;
+        }
+
+        return point;
     }
 
     /// <summary>
