@@ -30,10 +30,10 @@ public class ItemPickup : MonoBehaviour
 
     [Header("Player")]
 
-    [Tooltip("Player root. Auto-found by tag if empty.")]
+    [Tooltip("Player root. Auto-found when empty: prefers the XR Origin (XR Rig) in VR scenes, then the tag below.")]
     [SerializeField] private Transform playerTransform;
 
-    [Tooltip("Tag used to find the player.")]
+    [Tooltip("Tag used to find the player (fallback when no XR Origin exists).")]
     [SerializeField] private string playerTag = "Player";
 
     [Header("Pickup Animation")]
@@ -117,7 +117,9 @@ public class ItemPickup : MonoBehaviour
             return;
         }
 
-        Vector3 playerPos = playerTransform.position;
+        // v1.1 VR: measure to the HEADSET when the player is an XR Origin, so
+        // room-scale walking counts even when the rig's floor point lags behind.
+        Vector3 playerPos = PlayerHeadResolver.GetPosition(playerTransform);
         Vector3 itemPos = transform.position;
 
         float dx = playerPos.x - itemPos.x;
@@ -300,11 +302,13 @@ public class ItemPickup : MonoBehaviour
     {
         if (playerTransform != null) return;
 
-        GameObject player = FindPlayerByTag();
-
-        if (player != null)
+        // v1.1 VR: XR Origin (XR Rig) first, then the configured player tag.
+        // The ROOT is resolved on purpose: the pickup animation controller is
+        // searched in its children, which the headset camera is not part of.
+        Transform resolved = PlayerHeadResolver.ResolveRoot(null, playerTag);
+        if (resolved != null)
         {
-            playerTransform = player.transform;
+            playerTransform = resolved;
             TryFindPickupAnimationController();
             return;
         }
@@ -314,25 +318,11 @@ public class ItemPickup : MonoBehaviour
             warnedNoPlayer = true;
 
             Debug.LogWarning(
-                "[ItemPickup] No GameObject tagged '" +
+                "[ItemPickup] No XR Origin or GameObject tagged '" +
                 playerTag +
                 "' found. Assign Player Transform or tag the player root.",
                 this
             );
-        }
-    }
-
-    private GameObject FindPlayerByTag()
-    {
-        if (string.IsNullOrEmpty(playerTag)) return null;
-
-        try
-        {
-            return GameObject.FindGameObjectWithTag(playerTag);
-        }
-        catch (UnityException)
-        {
-            return null;
         }
     }
 

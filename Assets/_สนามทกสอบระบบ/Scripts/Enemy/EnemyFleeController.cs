@@ -52,6 +52,15 @@ using UnityEngine;
 /// affected: waiting / chasing / stunned / disappearing still use the normal
 /// dynamic Rigidbody with gravity, exactly as before.
 ///
+/// v1.4 — VR FIX (the flee direction used the rig's floor point): the player
+/// was resolved by the 'Player' tag only, which in VR scenes is the XR
+/// Origin's ROOT — the rig's FLOOR point — so room-scale walking could make
+/// the enemy "flee" in a direction that was actually TOWARD the real player.
+/// NOW: the player resolves through the shared PlayerHeadResolver (XR Origin
+/// first, then the 'Player' tag), and AwayFromPlayer() measures away from the
+/// HEADSET's position when the player is an XR Origin. Non-VR scenes are
+/// unchanged.
+///
 /// HOW TO HOOK IT UP (unchanged from v1.0 — 2 small edits, do NOT replace
 /// your whole enemy controller script):
 ///
@@ -119,7 +128,7 @@ public class EnemyFleeController : MonoBehaviour
     public float maxFleeDuration = 8f;
 
     [Header("Player Reference")]
-    [Tooltip("Optional: drag your Player here. If empty, the script finds the object tagged 'Player'.")]
+    [Tooltip("Optional: drag your Player here. If empty, the script finds the XR Origin (XR Rig) or the object tagged 'Player'.")]
     public Transform playerOverride;
 
     [Header("Simple Wall Avoidance (no NavMesh needed)")]
@@ -483,7 +492,7 @@ public class EnemyFleeController : MonoBehaviour
             // no camera in the scene: fall back to a distance check from the player
             if (player == null)
                 return true;
-            Vector3 flat = transform.position - player.position;
+            Vector3 flat = transform.position - PlayerHeadResolver.GetPosition(player);
             flat.y = 0f;
             return flat.sqrMagnitude > viewDistance * viewDistance;
         }
@@ -650,7 +659,11 @@ public class EnemyFleeController : MonoBehaviour
         if (player == null)
             return FlatForward();
 
-        Vector3 away = transform.position - player.position;
+        // v1.4: measure away from the HEADSET when the player is an XR Origin
+        // (room-scale correct — the rig's floor point can be meters away).
+        Vector3 playerPos = PlayerHeadResolver.GetPosition(player);
+
+        Vector3 away = transform.position - playerPos;
         away.y = 0f;
         if (away.sqrMagnitude < 0.0001f)
             return FlatForward();
@@ -671,9 +684,10 @@ public class EnemyFleeController : MonoBehaviour
         if (playerOverride != null)
             return playerOverride;
 
-        GameObject go = GameObject.FindGameObjectWithTag("Player");
-        if (go != null)
-            return go.transform;
+        // v1.4: XR Origin first, then the classic 'Player' tag (shared helper).
+        Transform resolved = PlayerHeadResolver.ResolveRoot(null);
+        if (resolved != null)
+            return resolved;
 
         return null;
     }

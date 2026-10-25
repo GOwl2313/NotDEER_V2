@@ -64,6 +64,14 @@ public enum EnemyState
 /// v2.8 – VR CHASE: the enemy walks toward the HEADSET's horizontal position
 /// (room-scale) instead of the XR Origin's floor point, and re-resolves its
 /// target on its own if the player reference is lost mid-game.
+///
+/// v2.9 – THE "SILENTLY DEAD ENEMY" FIX: previous versions DISABLED the
+/// component permanently in Start() when no player could be resolved in the
+/// first frame — Update() then never ran again, so the v2.8 self-heal could
+/// never kick in (the exact "enemy never spawns / never moves" symptom).
+/// NOW: warn once and keep retrying every 0.5 s. The XR Origin lookup also
+/// routes through the shared PlayerHeadResolver (one resolution order for
+/// the whole project).
 /// </summary>
 [DisallowMultipleComponent]
 public class EnemyController : MonoBehaviour
@@ -221,6 +229,9 @@ public class EnemyController : MonoBehaviour
     private float targetRescanTimer;
     private const float TargetRescanInterval = 0.5f;
 
+    // v2.9: one-time warning while no player exists.
+    private bool warnedNoPlayer;
+
     // ------------------------------------------------------------------ //
     // Unity messages
     // ------------------------------------------------------------------ //
@@ -261,14 +272,6 @@ public class EnemyController : MonoBehaviour
             player = ResolveChaseTarget();
         }
 
-        if (player == null)
-        {
-            Debug.LogError("[EnemyController] No player assigned on '" + name +
-                           "' and no XR Origin or GameObject tagged 'Player' exists in the scene. Disabling enemy.", this);
-            enabled = false;
-            return;
-        }
-
         if (flashlightDetector == null)
         {
             Debug.LogWarning("[EnemyController] No FlashlightDetector on '" + name +
@@ -276,6 +279,24 @@ public class EnemyController : MonoBehaviour
                              "Add the FlashlightDetector component to the prefab to enable stunning.", this);
         }
 
+        if (player == null)
+        {
+            // v2.9 FIX: this used to LogError + enabled = false — the component
+            // then never ran Update() again, so the v2.8 self-heal was dead code
+            // and a late-appearing rig could never be picked up. Warn once and
+            // let Update()'s 0.5 s re-scan keep trying instead.
+            if (!warnedNoPlayer)
+            {
+                warnedNoPlayer = true;
+                Debug.LogWarning("[EnemyController] No player assigned on '" + name +
+                                 "' and no XR Origin or GameObject tagged 'Player' exists yet. " +
+                                 "The enemy keeps retrying every 0.5 s (EnemySpawner injects the " +
+                                 "reference automatically for its own spawns).", this);
+            }
+            return;
+        }
+
+        warnedNoPlayer = false;
         EnterState(EnemyState.Waiting);
     }
 
@@ -300,6 +321,20 @@ public class EnemyController : MonoBehaviour
             {
                 targetRescanTimer = TargetRescanInterval;
                 player = ResolveChaseTarget();
+
+                if (player != null)
+                {
+                    // v2.9: the player just appeared — run the full startup path.
+                    warnedNoPlayer = false;
+                    EnterState(EnemyState.Waiting);
+                }
+                else if (!warnedNoPlayer)
+                {
+                    warnedNoPlayer = true;
+                    Debug.LogWarning("[EnemyController] No player assigned on '" + name +
+                                     "' and no XR Origin or GameObject tagged 'Player' exists yet. " +
+                                     "Retrying every 0.5 s.", this);
+                }
             }
 
             if (player == null) return;
@@ -389,7 +424,11 @@ public class EnemyController : MonoBehaviour
     /// </summary>
     public void Initialize(Transform playerTransform)
     {
-        if (playerTransform != null) player = playerTransform;
+        if (playerTransform != null)
+        {
+            player = playerTransform;
+            warnedNoPlayer = false;
+        }
     }
 
     /// <summary>Resets the enemy to the freshly-spawned Waiting state (useful for pooling).</summary>
@@ -618,16 +657,11 @@ public class EnemyController : MonoBehaviour
     ///      actually moves with the player (VR scenes often still contain an
     ///      old non-VR player, so the 'Player' tag alone is ambiguous there).
     ///   3. The classic 'Player' tag (non-VR scenes keep working unchanged).
+    /// v2.9: the lookup itself now lives in the shared PlayerHeadResolver.
     /// </summary>
     private Transform ResolveChaseTarget()
     {
-        if (player != null) return player;
-
-        Unity.XR.CoreUtils.XROrigin xrOrigin = FindXROriginInScene();
-        if (xrOrigin != null) return xrOrigin.transform;
-
-        GameObject found = GameObject.FindGameObjectWithTag("Player");
-        return found != null ? found.transform : null;
+        return PlayerHeadResolver.ResolveRoot(player);
     }
 
     /// <summary>
@@ -654,20 +688,6 @@ public class EnemyController : MonoBehaviour
         }
 
         return point;
-    }
-
-    /// <summary>
-    /// Version-aware XR Origin lookup — the same pattern the stuck detector's
-    /// spawner lookup uses: Unity 2023+ (including Unity 6) gets
-    /// FindAnyObjectByType, older Unity gets FindObjectOfType.
-    /// </summary>
-    private static Unity.XR.CoreUtils.XROrigin FindXROriginInScene()
-    {
-#if UNITY_2023_1_OR_NEWER
-        return FindAnyObjectByType<Unity.XR.CoreUtils.XROrigin>();
-#else
-        return FindObjectOfType<Unity.XR.CoreUtils.XROrigin>();
-#endif
     }
 
     /// <summary>Caches parameter hashes and checks which Bool parameters exist in the Animator.</summary>
@@ -744,18 +764,7 @@ public class EnemyController : MonoBehaviour
         if (target == null)
         {
             // v2.7 – same XR-first resolution as at runtime (editor gizmo).
-#if UNITY_2023_1_OR_NEWER
-            Unity.XR.CoreUtils.XROrigin xrOrigin = FindAnyObjectByType<Unity.XR.CoreUtils.XROrigin>();
-#else
-            Unity.XR.CoreUtils.XROrigin xrOrigin = FindObjectOfType<Unity.XR.CoreUtils.XROrigin>();
-#endif
-            if (xrOrigin != null) target = xrOrigin.transform;
-
-            if (target == null)
-            {
-                GameObject found = GameObject.FindGameObjectWithTag("Player");
-                if (found != null) target = found.transform;
-            }
+            target = PlayerHeadResolver.ResolveRoot(null);
         }
 
         if (target != null)

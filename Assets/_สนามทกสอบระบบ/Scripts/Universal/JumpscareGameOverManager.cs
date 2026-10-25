@@ -60,6 +60,19 @@ using UnityEngine.InputSystem.UI;
 /// AspectRatioFitter for the letterbox (RawImage has no preserveAspect — that
 /// is an Image-only member) and FindAnyObjectByType (FindFirstObjectByType is
 /// obsolete in Unity 6.1+).
+///
+/// PATCH v1.3 (VR support):
+///   • The player resolves through the shared PlayerHeadResolver
+///     (XR Origin first, then the 'Player' tag) — so the freeze and the
+///     respawn also work when the rig root is not tagged (or an old desktop
+///     player still carries the tag in a VR scene).
+///   • PlacePlayerAtStartingPoint() teleports an XR rig the VR-correct way:
+///     the HEADSET lands exactly on the marker (not the rig's floor point,
+///     which would leave the player standing offset from it), the rig then
+///     yaw-rotates around the head so the body faces the marker's forward
+///     arrow. The CharacterController on the rig is disabled during the
+///     teleport and re-enabled right after — Unity's official teleport
+///     pattern. Non-VR players keep the original behaviour unchanged.
 /// </summary>
 [DisallowMultipleComponent]
 [DefaultExecutionOrder(-100)] // respawn placement runs before the camera controller's Start
@@ -430,10 +443,13 @@ public class JumpscareGameOverManager : MonoBehaviour
 #endif
     }
 
+    // v1.3: XR Origin first, then the classic 'Player' tag (shared helper).
     private GameObject ResolvePlayerRoot()
     {
         if (playerOverride != null) return playerOverride.gameObject;
-        return GameObject.FindGameObjectWithTag("Player");
+
+        Transform resolved = PlayerHeadResolver.ResolveRoot(null);
+        return resolved != null ? resolved.gameObject : null;
     }
 
     private static GameObject ResolveEnemyRoot(Collider enemyCollider)
@@ -549,18 +565,52 @@ public class JumpscareGameOverManager : MonoBehaviour
         Transform player = playerOverride != null ? playerOverride : ResolvePlayerTransform();
         if (player == null) return;
 
-        player.position = startingPoint.position;
-        player.rotation = startingPoint.rotation; // faces the marker's forward arrow
+        // v1.3 VR: an XR rig is teleported so the HEADSET lands exactly on the
+        // marker (not the rig's floor point — the two can be meters apart) and
+        // the body faces the marker's forward arrow.
+        Unity.XR.CoreUtils.XROrigin xrOrigin = player.GetComponent<Unity.XR.CoreUtils.XROrigin>();
+        if (xrOrigin == null) xrOrigin = player.GetComponentInChildren<Unity.XR.CoreUtils.XROrigin>();
+
+        CharacterController character = player.GetComponent<CharacterController>();
+        bool characterWasEnabled = character != null && character.enabled;
+        if (characterWasEnabled) character.enabled = false; // Unity's official teleport pattern
+
+        if (xrOrigin != null && xrOrigin.Camera != null)
+        {
+            Transform head = xrOrigin.Camera.transform;
+            Vector3 headPos = head.position;
+
+            // 1) Slide the rig so the headset ends up over the marker, and take
+            //    the marker's floor height for the rig itself.
+            player.position += new Vector3(
+                startingPoint.position.x - headPos.x,
+                startingPoint.position.y - player.position.y,
+                startingPoint.position.z - headPos.z);
+
+            // 2) Yaw the whole rig around the HEAD so the rig's forward matches
+            //    the marker's forward — the head stays on the marker while it
+            //    pivots with the rig.
+            float yawDelta = startingPoint.eulerAngles.y - head.eulerAngles.y;
+            player.RotateAround(head.position, Vector3.up, yawDelta);
+        }
+        else
+        {
+            // Non-VR (desktop) — the original behaviour, unchanged.
+            player.position = startingPoint.position;
+            player.rotation = startingPoint.rotation; // faces the marker's forward arrow
+        }
+
+        if (characterWasEnabled) character.enabled = true;
 
         Rigidbody body = player.GetComponentInParent<Rigidbody>();
         SetVelocity(body, Vector3.zero);
     }
 
+    // v1.3: XR Origin first, then the classic 'Player' tag (shared helper).
     private Transform ResolvePlayerTransform()
     {
         if (playerOverride != null) return playerOverride;
-        GameObject found = GameObject.FindGameObjectWithTag("Player");
-        return found != null ? found.transform : null;
+        return PlayerHeadResolver.ResolveRoot(null);
     }
 
     /// <summary>Context menu (gear icon): creates the respawn marker at the player's position.</summary>

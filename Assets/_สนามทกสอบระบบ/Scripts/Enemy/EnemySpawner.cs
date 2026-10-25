@@ -30,12 +30,10 @@ using UnityEngine;
 ///     re-counted every time the player leaves a Safe Zone. While it counts,
 ///     NOTHING spawns — the auto interval, Spawn On Start and flashlight
 ///     respawns all wait for it. "Spawn On Start" now fires at the END of the
-///     start delay (the first enemy appears 5 s into the game by default).
-///   • PauseSpawning()/ResumeSpawning() (called by the SafeZone plug-in):
-///     while the player stands inside a Safe Zone, every spawn source is
-///     frozen. Leaving the zone re-counts the Spawn Delay, then spawning
-///     resumes — the enemy re-engages right when the delay expires.
-///     Several zones can overlap safely (reference-counted pause).
+///     delay (with a 5 s delay the first enemy appears 5 s into the game).
+///   • Safe Zones (SafeZone.cs) pause and resume spawning through
+///     PauseSpawning()/ResumeSpawning(); the pause is reference-counted, so
+///     overlapping zones never get out of sync.
 ///
 /// v1.4 – STUCK / OUT-OF-RANGE AUTO RESPAWN (for the EnemyStuckDetector
 ///   plug-in script, which lives on the enemy prefab):
@@ -71,6 +69,19 @@ using UnityEngine;
 ///     the ring too. Non-VR scenes behave exactly as before.
 ///   • The camera reference self-heals before every spawn attempt, so the
 ///     out-of-sight check keeps working if the XR camera appears late.
+///
+/// v1.7 – THE "SILENTLY DEAD SPAWNER" FIX (the enemy-never-spawns bug):
+///   • Previous versions DISABLED the spawner permanently in Start() when no
+///     player could be resolved in the first frame (LogError + enabled=false).
+///     Update() then never ran again — so the v1.5 self-heal could not do its
+///     job, and any scene whose rig spawns late (async XR start, rig recreated
+///     at runtime, 'Player' tag assigned a moment later) silently never
+///     spawned an enemy. NOW: the spawner warns once and keeps retrying every
+///     0.5 s until a player exists; the Spawn Delay bookkeeping starts as soon
+///     as the player is resolved, so "Spawn On Start" still fires correctly.
+///   • The player lookups route through the shared PlayerHeadResolver
+///     (XR Origin first, then the 'Player' tag) — same behaviour, one code
+///     path for the whole project.
 ///
 /// Every tuning value is exposed in the Inspector. Use the component's
 /// context menu (gear icon) to "Spawn Enemy Now" while testing.
@@ -212,6 +223,9 @@ public class EnemySpawner : MonoBehaviour
     private bool startDelayPending;    // fire the "Spawn On Start" spawn when the delay ends
     private bool resumeDelayPending;   // re-engage right when a post-zone delay ends
 
+    // v1.7: false until the player exists and the delay state machine is primed.
+    private bool spawnDelayInitialized;
+
     // v1.4: stuck/out-of-range respawn queue (queued by EnemyStuckDetector).
     // One countdown for the head of the queue; further entries wait with
     // their own delays (the same shape as the flashlight respawn queue).
@@ -313,9 +327,16 @@ public class EnemySpawner : MonoBehaviour
 
         if (player == null)
         {
-            Debug.LogError("[EnemySpawner] No Player assigned and no XR Origin or GameObject tagged " +
-                           "'Player' found. Disabling spawner.", this);
-            enabled = false;
+            // v1.7 FIX: this used to LogError + enabled = false — which made
+            // Update() never run again, so the v1.5 self-heal could never kick
+            // in and the spawner stayed dead forever ("enemies never spawn").
+            // A rig that appears late (async XR start, recreated rig, tag
+            // assigned a moment later) is now simply waited for.
+            Debug.LogWarning("[EnemySpawner] No Player assigned and no XR Origin or GameObject tagged " +
+                             "'Player' found yet. The spawner keeps retrying every 0.5 s — assign the " +
+                             "Player reference in the Inspector (or tag the rig root 'Player') to " +
+                             "silence this warning.", this);
+            playerRescanTimer = 0f;   // first re-scan happens on the next Update
             return;
         }
 
@@ -325,22 +346,15 @@ public class EnemySpawner : MonoBehaviour
                              "Visibility check will be skipped – enemies may spawn on screen.", this);
         }
 
-        // v1.3: the game-start Spawn Delay. No enemy appears until it has
-        // fully counted down — "Spawn On Start" now fires at the END of the
-        // delay (with a 5 s delay the first enemy appears 5 s into the game).
-        spawnDelayCountdown = Mathf.Max(0f, spawnDelay);
-        startDelayPending = spawnOnStart;
-        if (spawnDelayCountdown <= 0f) FinishSpawnDelay();
-
-        spawnTimer = 0f;
+        InitializeSpawnDelay();
     }
 
     private void Update()
     {
         // v1.5: self-heal the target reference — if the resolved player was
-        // destroyed mid-game (rig recreated, baked reference to a dead object
-        // etc.) the spawner used to silently never spawn again. Re-resolve on
-        // a short cadence instead.
+        // destroyed mid-game (rig recreated, scene object swapped etc.) the
+        // spawner re-resolves on a short cadence instead of silently never
+        // spawning again.
         if (player == null)
         {
             playerRescanTimer -= Time.deltaTime;
@@ -351,6 +365,13 @@ public class EnemySpawner : MonoBehaviour
             }
 
             if (player == null) return;
+        }
+
+        // v1.7: the player just appeared (late rig / retagged object) — prime
+        // the Spawn Delay bookkeeping exactly like Start() would have.
+        if (!spawnDelayInitialized)
+        {
+            InitializeSpawnDelay();
         }
 
         // v1.2: fully frozen while the pause menu is open (interval, respawn
@@ -580,6 +601,28 @@ public class EnemySpawner : MonoBehaviour
     }
 
     // ------------------------------------------------------------------ //
+    // v1.7 — Spawn Delay priming (works no matter when the player appears)
+    // ------------------------------------------------------------------ //
+
+    /// <summary>
+    /// v1.7: primes the game-start Spawn Delay exactly once — either from
+    /// Start() when the player already exists, or from Update() the first
+    /// frame the late-resolved player shows up. "Spawn On Start" therefore
+    /// always fires at the END of the delay, never lost to a missing player.
+    /// </summary>
+    private void InitializeSpawnDelay()
+    {
+        if (spawnDelayInitialized) return;
+        spawnDelayInitialized = true;
+
+        spawnDelayCountdown = Mathf.Max(0f, spawnDelay);
+        startDelayPending = spawnOnStart;
+        if (spawnDelayCountdown <= 0f) FinishSpawnDelay();
+
+        spawnTimer = 0f;
+    }
+
+    // ------------------------------------------------------------------ //
     // v1.5 — Target resolution (XR Origin first)
     // ------------------------------------------------------------------ //
 
@@ -590,31 +633,12 @@ public class EnemySpawner : MonoBehaviour
     ///      actually moves with the player. VR scenes often still contain an
     ///      old non-VR player, so the 'Player' tag alone is ambiguous there.
     ///   3. The classic 'Player' tag (non-VR scenes keep working unchanged).
+    /// v1.7: the lookup itself now lives in the shared PlayerHeadResolver so
+    /// every script in the project resolves the player the same way.
     /// </summary>
     private Transform ResolvePlayerTransform()
     {
-        if (player != null) return player;
-
-        Unity.XR.CoreUtils.XROrigin xrOrigin = FindXROriginInScene();
-        if (xrOrigin != null) return xrOrigin.transform;
-
-        GameObject found = GameObject.FindGameObjectWithTag("Player");
-        return found != null ? found.transform : null;
-    }
-
-    /// <summary>
-    /// Version-aware XR Origin lookup — the same pattern the v1.4 spawner
-    /// lookup uses: Unity 2023+ (including Unity 6) gets FindAnyObjectByType,
-    /// older Unity gets FindObjectOfType. No version prints a deprecation
-    /// warning for the branch it actually compiles.
-    /// </summary>
-    private static Unity.XR.CoreUtils.XROrigin FindXROriginInScene()
-    {
-#if UNITY_2023_1_OR_NEWER
-        return FindAnyObjectByType<Unity.XR.CoreUtils.XROrigin>();
-#else
-        return FindObjectOfType<Unity.XR.CoreUtils.XROrigin>();
-#endif
+        return PlayerHeadResolver.ResolveRoot(player);
     }
 
     // ------------------------------------------------------------------ //

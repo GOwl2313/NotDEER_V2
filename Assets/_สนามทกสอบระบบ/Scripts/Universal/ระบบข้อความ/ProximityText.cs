@@ -57,6 +57,12 @@ using UnityEngine;
 ///     too. All the scripts read each other's RAW state — no one can lock the
 ///     others out, and they always agree, from frame one.
 ///
+/// v1.3 — VR FIX: the player resolves through the shared PlayerHeadResolver
+///   (XR Origin first, then the 'Player' tag) and the range is measured to
+///   the HEADSET when the player is an XR Origin — room-scale walking now
+///   counts even when the rig's floor point lags meters behind. Non-VR
+///   scenes behave exactly as before.
+///
 /// v1.0 — initial release.
 /// </summary>
 [DisallowMultipleComponent]
@@ -74,7 +80,7 @@ public class ProximityText : MonoBehaviour
 
     [Header("Range")]
 
-    [Tooltip("How close the player must be for the text to show (meters, measured HORIZONTALLY from the player's tagged object to this object).")]
+    [Tooltip("How close the player must be for the text to show (meters, measured HORIZONTALLY from the player to this object).")]
     [SerializeField, Min(0.1f)] private float range = 2.5f;
 
     [Tooltip("When an ItemPickup sits on the same object, always use ITS pickup radius — the text then never disagrees with the actual E range. The 'Range' field above becomes the fallback for standalone use (doors, notes…).")]
@@ -82,10 +88,10 @@ public class ProximityText : MonoBehaviour
 
     [Header("Player")]
 
-    [Tooltip("The player the range is measured to. Auto-found by tag when left empty.")]
+    [Tooltip("The player the range is measured to. Auto-found when empty: XR Origin (XR Rig) first, then the tag below.")]
     [SerializeField] private Transform playerTransform;
 
-    [Tooltip("Tag used to find the player automatically. Tag the player's ROOT 'Player' (Tags & Layers).")]
+    [Tooltip("Tag used to find the player automatically (fallback when no XR Origin exists). Tag the player's ROOT (Tags & Layers).")]
     [SerializeField] private string playerTag = "Player";
 
     [Header("Behaviour")]
@@ -171,7 +177,8 @@ public class ProximityText : MonoBehaviour
 
         if (ResolvePlayer())
         {
-            Vector3 playerPos = playerTransform.position;
+            // v1.3 VR: measure to the HEADSET when the player is an XR Origin.
+            Vector3 playerPos = PlayerHeadResolver.GetPosition(playerTransform);
             Vector3 itemPos = transform.position;
             float dx = playerPos.x - itemPos.x;
             float dz = playerPos.z - itemPos.z;
@@ -438,34 +445,20 @@ public class ProximityText : MonoBehaviour
     {
         if (playerTransform != null) return;
 
-        GameObject player = FindPlayerByTag();
-        if (player != null)
+        // v1.3 VR: XR Origin (XR Rig) first, then the configured player tag.
+        Transform resolved = PlayerHeadResolver.ResolveRoot(null, playerTag);
+        if (resolved != null)
         {
-            playerTransform = player.transform;
+            playerTransform = resolved;
             return;
         }
 
         if (!warnedNoPlayer)
         {
             warnedNoPlayer = true;
-            Debug.LogWarning("[ProximityText] '" + name + "': no GameObject tagged '" + playerTag +
+            Debug.LogWarning("[ProximityText] '" + name + "': no XR Origin or GameObject tagged '" + playerTag +
                              "' found yet. Tag the player's ROOT '" + playerTag +
                              "' (or drag it into 'Player Transform'). Retrying every 0.5 s.", this);
-        }
-    }
-
-    /// <summary>Tag lookup that survives a tag that does not exist in the project yet.</summary>
-    private GameObject FindPlayerByTag()
-    {
-        if (string.IsNullOrEmpty(playerTag)) return null;
-
-        try
-        {
-            return GameObject.FindGameObjectWithTag(playerTag);
-        }
-        catch
-        {
-            return null;   // the tag is not defined — the warning above already said it
         }
     }
 }

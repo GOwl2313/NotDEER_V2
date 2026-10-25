@@ -6,6 +6,11 @@ using UnityEngine.InputSystem;
 /// Quest: A (left) / X (right) button. XR Interaction Simulator: keyboard key 1.
 /// Everything is created in code - there is NOTHING to configure in the Inspector.
 /// The F key (FlashlightController's own toggle) keeps working alongside this.
+///
+/// v1.1 — PAUSE FIX: Update() now returns while GamePauseManager's pause menu
+/// is open, matching FlashlightController's own F-key path. Previously the
+/// controller button could silently toggle the flashlight (playing its audio
+/// hooks) while the game was paused.
 /// </summary>
 public class VRFlashlightToggle : MonoBehaviour
 {
@@ -59,6 +64,11 @@ public class VRFlashlightToggle : MonoBehaviour
 
     private void Update()
     {
+        // v1.1: frozen with the rest of the game while the pause menu is open
+        // (same rule FlashlightController applies to its own F-key toggle).
+        if (GamePauseManager.IsPaused)
+            return;
+
         if (flashlight == null || toggleAction == null)
             return;
 

@@ -40,6 +40,12 @@ using UnityEngine.UI;
 ///   — parents being destroyed or deactivated is handled automatically and
 ///     the marker dies with them, exactly as WorldWaypoint documents.
 ///
+/// v1.1 — VR FIX: the player resolves through the shared PlayerHeadResolver
+///   (XR Origin first, then the 'Player' tag), and "player distance" is
+///   measured to the HEADSET when the player is an XR Origin — the marker
+///   distance number and Max View Distance culling now stay correct while
+///   the player walks around inside the play area. Non-VR scenes unchanged.
+///
 /// v1.0 — initial release.
 /// </summary>
 [DisallowMultipleComponent]
@@ -258,7 +264,9 @@ public class WaypointHUD : MonoBehaviour
         float pixelHeight = mainCamera.pixelHeight;
         Vector3 cameraPos = mainCamera.transform.position;
         Transform player = ResolvePlayerTransform();
-        Vector3 playerPos = player != null ? player.position : cameraPos;
+
+        // v1.1 VR: measure to the HEADSET when the player is an XR Origin.
+        Vector3 playerPos = player != null ? PlayerHeadResolver.GetPosition(player) : cameraPos;
 
         // Backwards: a waypoint dying inside an event handler (a pickup
         // destroying a totem, for example) removes itself from the same list
@@ -471,17 +479,20 @@ public class WaypointHUD : MonoBehaviour
     {
         if (playerTransform != null) return playerTransform;
 
-        GameObject player = GameObject.FindWithTag("Player");
-        if (player != null)
+        // v1.1 VR: XR Origin (XR Rig) first, then the classic 'Player' tag.
+        Transform resolved = PlayerHeadResolver.ResolveRoot(null);
+        if (resolved != null)
         {
-            playerTransform = player.transform;
+            playerTransform = resolved;
+            return playerTransform;
         }
-        else if (!warnedNoPlayer)
+
+        if (!warnedNoPlayer)
         {
             warnedNoPlayer = true;
-            Debug.LogWarning("[WaypointHUD] No GameObject tagged 'Player' found — waypoint distances are measured to the camera instead (one-time notice).", this);
+            Debug.LogWarning("[WaypointHUD] No XR Origin or GameObject tagged 'Player' found — waypoint distances are measured to the camera instead (one-time notice).", this);
         }
-        return playerTransform;
+        return null;
     }
 
     // ------------------------------------------------------------------ //
