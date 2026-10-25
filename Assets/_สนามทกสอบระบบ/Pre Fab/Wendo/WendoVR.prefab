@@ -1218,7 +1218,7 @@ MonoBehaviour:
   outOfViewConfirmTime: 0.2
   minFleeTimeBeforeDespawn: 0.5
   maxFleeDuration: 8
-  playerOverride: {fileID: 7114426969352601263, guid: 4615f4cd0019d74469f6548efd0684a9, type: 3}
+  playerOverride: {fileID: 0}
   avoidObstacles: 1
   obstacleCheckDistance: 2.5
   obstacleRayHeight: 0.5
