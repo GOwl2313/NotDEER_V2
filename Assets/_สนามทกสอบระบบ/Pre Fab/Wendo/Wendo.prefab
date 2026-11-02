@@ -1216,8 +1216,8 @@ MonoBehaviour:
   viewportEdgeMargin: 0.1
   occlusionCountsAsOutOfView: 1
   outOfViewConfirmTime: 0.2
-  minFleeTimeBeforeDespawn: 0.5
-  maxFleeDuration: 8
+  minFleeTimeBeforeDespawn: 3
+  maxFleeDuration: 5
   playerOverride: {fileID: 7114426969352601263, guid: 4615f4cd0019d74469f6548efd0684a9, type: 3}
   avoidObstacles: 1
   obstacleCheckDistance: 2.5
@@ -1253,7 +1253,7 @@ MonoBehaviour:
   player: {fileID: 0}
   spawner: {fileID: 0}
   stuckSpeedThreshold: 1
-  stuckTimeLimit: 10
+  stuckTimeLimit: 3
   speedSampleWindow: 0.5
   useSpawnerRange: 1
   outOfRangeDistance: 30
@@ -1379,7 +1379,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   configureAudioSource: 1
-  minDistance: 20
+  minDistance: 5
   maxDistance: 50
   pitchVariation: 0.08
   volumeVariation: 0.15
@@ -1443,7 +1443,7 @@ MonoBehaviour:
         loopGroupSpan: 1
   configureAudioSources: 1
   spatialBlend: 1
-  minDistance: 30
+  minDistance: 20
   maxDistance: 50
 --- !u!1 &3876696039254352737
 GameObject:
