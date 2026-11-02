@@ -1355,7 +1355,7 @@ MonoBehaviour:
     - {fileID: 8574412962073106934, guid: 82aea1bf4675be54487e9d7583efd53c, type: 2}
     - {fileID: 8574412962073106934, guid: a81050ac684e8ef438628a0ed178d144, type: 2}
     alsoWhenDetailGrassPresent: 0
-    volume: 0
+    volume: 1
   defaultSurface:
     name: Default
     clips:
@@ -1379,7 +1379,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 4294967295
   configureAudioSource: 1
-  minDistance: 1
+  minDistance: 20
   maxDistance: 50
   pitchVariation: 0.08
   volumeVariation: 0.15
@@ -1443,7 +1443,7 @@ MonoBehaviour:
         loopGroupSpan: 1
   configureAudioSources: 1
   spatialBlend: 1
-  minDistance: 5
+  minDistance: 30
   maxDistance: 50
 --- !u!1 &3876696039254352737
 GameObject:
