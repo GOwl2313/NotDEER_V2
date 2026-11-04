@@ -111,6 +111,11 @@ public class EnemyFootsteps : MonoBehaviour
     [Tooltip("A new footstep CUTS the previous one instead of playing on top of it (steps never overlap). Turn OFF to let long steps blend together.")]
     [SerializeField] private bool cutPreviousStep = true;
 
+    [Header("Loudness")]
+
+    [Tooltip("Boost applied to the auto-created footsteps source. 0 = off. +6 dB = 2x louder, +12 dB = 4x.")]
+    [SerializeField, Range(0f, 24f)] private float boostDb = 6f;
+
     // ------------------------------------------------------------------ //
     // Runtime
     // ------------------------------------------------------------------ //
@@ -131,6 +136,13 @@ public class EnemyFootsteps : MonoBehaviour
         GameObject audioObject = new GameObject("Enemy Footsteps Audio");
         audioObject.transform.SetParent(transform, false);
         audioSource = audioObject.AddComponent<AudioSource>();
+
+        // Loudness plug-in rides on the child that owns the source,
+        // because this child only exists at play time.
+        if (boostDb > 0f)
+        {
+            audioObject.AddComponent<LoudnessBoost>().boostDb = boostDb;
+        }
 
         if (configureAudioSource && audioSource != null)
         {

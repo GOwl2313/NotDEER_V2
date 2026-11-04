@@ -1386,6 +1386,7 @@ MonoBehaviour:
   pitchVariation: 0.08
   volumeVariation: 0.15
   cutPreviousStep: 1
+  boostDb: 12
 --- !u!114 &-5798676245400170941
 MonoBehaviour:
   m_ObjectHideFlags: 0
