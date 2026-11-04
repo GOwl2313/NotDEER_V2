@@ -47227,6 +47227,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8087207170827137191, guid: b639d853b03c13a4582fc1a034e2d36e, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2098699271}
+    - targetCorrespondingSourceObject: {fileID: 8087207170827137191, guid: b639d853b03c13a4582fc1a034e2d36e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2098699272}
   m_SourcePrefab: {fileID: 100100000, guid: b639d853b03c13a4582fc1a034e2d36e, type: 3}
 --- !u!4 &2098699263 stripped
 Transform:
@@ -47348,6 +47351,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LoudnessBoost
   boostDb: 14
+--- !u!114 &2098699272
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2098699264}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17b810bba0bab6c44974e8141a6506de, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::TotemEventProbe
 --- !u!1001 &2105201278
 PrefabInstance:
   m_ObjectHideFlags: 0
