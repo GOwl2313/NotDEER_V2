@@ -1385,7 +1385,7 @@ MonoBehaviour:
   pitchVariation: 0.08
   volumeVariation: 0.15
   cutPreviousStep: 1
-  boostDb: 12
+  boostDb: 8
 --- !u!114 &-5798676245400170941
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1445,7 +1445,7 @@ MonoBehaviour:
         loopGroupSpan: 1
   configureAudioSources: 1
   spatialBlend: 1
-  minDistance: 20
+  minDistance: 10
   maxDistance: 50
   boostDb: 10
 --- !u!82 &6482588406317317651
