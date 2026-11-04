@@ -1556,7 +1556,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fc9c3c22f17bf6a4895df41f50db8ff7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LoudnessBoost
-  boostDb: 10
+  boostDb: 14
 --- !u!1 &3876696039254352737
 GameObject:
   m_ObjectHideFlags: 0
