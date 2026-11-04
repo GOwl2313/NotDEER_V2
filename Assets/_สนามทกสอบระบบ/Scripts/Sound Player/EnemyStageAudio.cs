@@ -180,6 +180,11 @@ public class EnemyStageAudio : MonoBehaviour
     [Tooltip("How far away the sounds fade out completely.")]
     [SerializeField] private float maxDistance = 60f;
 
+    [Header("Loudness")]
+
+    [Tooltip("Boost applied to every source in the stage-audio pool. 0 = off. +6 dB = 2x louder, +12 dB = 4x.")]
+    [SerializeField, Range(0f, 24f)] private float boostDb = 6f;
+
     // ------------------------------------------------------------------ //
     // Runtime
     // ------------------------------------------------------------------ //
@@ -560,12 +565,17 @@ public class EnemyStageAudio : MonoBehaviour
         return source;
     }
 
-    /// <summary>Creates one more AudioSource on the pool child object.</summary>
+    /// <summary>Creates one more AudioSource for the pool — each on its OWN
+    /// child GameObject, because an OnAudioFilterRead plug-in (LoudnessBoost)
+    /// may only serve ONE AudioSource per GameObject.</summary>
     private AudioSource CreateConfiguredSource()
     {
         if (poolObject == null) return null;
 
-        AudioSource source = poolObject.AddComponent<AudioSource>();
+        GameObject sourceObject = new GameObject("Stage Audio Source");
+        sourceObject.transform.SetParent(poolObject.transform, false);
+
+        AudioSource source = sourceObject.AddComponent<AudioSource>();
         if (source != null && configureAudioSources)
         {
             source.playOnAwake = false;
@@ -576,6 +586,13 @@ public class EnemyStageAudio : MonoBehaviour
             source.minDistance = minDistance;
             source.maxDistance = maxDistance;
         }
+
+        // One boost per source, attached only to the child that owns it.
+        if (source != null && boostDb > 0f)
+        {
+            sourceObject.AddComponent<LoudnessBoost>().boostDb = boostDb;
+        }
+
         return source;
     }
 

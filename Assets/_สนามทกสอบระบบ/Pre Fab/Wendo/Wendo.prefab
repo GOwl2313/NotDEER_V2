@@ -1116,7 +1116,6 @@ GameObject:
   - component: {fileID: 5830928747213759636}
   - component: {fileID: -5798676245400170941}
   - component: {fileID: 6482588406317317651}
-  - component: {fileID: 747980564863014397}
   m_Layer: 0
   m_Name: Wendo
   m_TagString: Enemy
@@ -1448,6 +1447,7 @@ MonoBehaviour:
   spatialBlend: 1
   minDistance: 20
   maxDistance: 50
+  boostDb: 10
 --- !u!82 &6482588406317317651
 AudioSource:
   m_ObjectHideFlags: 0
@@ -1545,19 +1545,6 @@ AudioSource:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
---- !u!114 &747980564863014397
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3696493194269880119}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fc9c3c22f17bf6a4895df41f50db8ff7, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::LoudnessBoost
-  boostDb: 14
 --- !u!1 &3876696039254352737
 GameObject:
   m_ObjectHideFlags: 0
